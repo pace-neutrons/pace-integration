@@ -68,9 +68,9 @@ pipeline {
 
     stage("Get-Horace-Euphonic-Interface") {
       steps {
-        // .mltbx currently only available for Linux
-        if (isUnix()) {
-          script {
+        script {
+          // .mltbx currently only available for Linux
+          if (isUnix()) {
             // Creation of .mltbx is not yet in master, so use branch build
             copyArtifacts(
               filter: 'mltbx/*.mltbx',
@@ -82,13 +82,26 @@ pipeline {
         }
       }
     }
+
+    stage("Install-Horace-and-Horace-Euphonic-Interface") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh '''
+              module load matlab/\$MATLAB_VERSION &&
+              matlab -nosplash -nodesktop -batch "matlab.addons.toolbox.installedToolboxes"
+            '''
+          }
+        }
+      }
+    }
   }
   post {
     unsuccessful {
       script {
         mail (
           to: "rebecca.fair@stfc.ac.uk",
-          subject: "Linux failed pipeline: ${env.JOB_BASE_NAME}",
+          subject: "PACE pipeline failed: ${env.JOB_BASE_NAME}",
           body: "See ${env.BUILD_URL}"
         )
       }
