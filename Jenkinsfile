@@ -68,14 +68,17 @@ pipeline {
 
     stage("Get-Horace-Euphonic-Interface") {
       steps {
-        script {
-          // Creation of .mltbx is not yet in master, so use branch build
-          copyArtifacts(
-            filter: 'mltbx/*.mltbx',
-            fingerprintArtifacts: true,
-            projectName: "PACE-neutrons/horace-euphonic-interface/Branch-${env.JOB_BASE_NAME}",
-            selector: lastSuccessful()
-          )
+        // .mltbx currently only available for Linux
+        if (isUnix()) {
+          script {
+            // Creation of .mltbx is not yet in master, so use branch build
+            copyArtifacts(
+              filter: 'mltbx/*.mltbx',
+              fingerprintArtifacts: true,
+              projectName: "PACE-neutrons/horace-euphonic-interface/Branch-${env.JOB_BASE_NAME}",
+              selector: lastSuccessful()
+            )
+          }
         }
       }
     }
