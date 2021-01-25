@@ -83,6 +83,48 @@ pipeline {
       }
     }
 
+    stage("Get-Euphonic") {
+      steps {
+        dir('Euphonic') {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: 'refs/heads/master']],
+            extensions: [[$class: 'WipeWorkspace']],
+            userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/Euphonic.git']]
+          ])
+        }
+      }
+    }
+
+    stage("Install-Euphonic") {
+      steps {
+        dir('Euphonic') {
+          script {
+            if (isUnix()) {
+              sh '''
+                module load conda/3 &&
+                module load gcc &&
+                conda create --name py python=3.6 -y &&
+                conda activate py &&
+                python -mpip install numpy &&
+                python -mpip install .
+              '''
+            }
+            else {
+              bat """
+                CALL conda remove --name py36_pace_integration --all -y
+                CALL conda create --name py36_pace_integration python=3.6 -y
+                CALL "%VS2019_VCVARSALL%" x86_amd64
+                CALL conda activate py36_pace_integration
+                python -mpip install numpy
+                python -mpip install .
+              """
+            }
+          }
+        }
+      }
+    }
+
     stage("Install-Horace-and-Horace-Euphonic-Interface") {
       steps {
         script {
