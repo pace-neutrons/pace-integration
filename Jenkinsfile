@@ -125,13 +125,18 @@ pipeline {
       }
     }
 
-    stage("Install-Horace-and-Horace-Euphonic-Interface") {
+    stage("Set-Up-Matlab-And-Run-Tests") {
       steps {
         script {
           if (isUnix()) {
             sh '''
+              module load conda/3 &&
+              conda activate py &&
+              export PYTHON_EX_PATH=`which python` &&
+              ls &&
+              ls Horace &&
               module load matlab/\$MATLAB_VERSION &&
-              matlab -nosplash -nodesktop -batch "matlab.addons.toolbox.installedToolboxes"
+              matlab -nosplash -nodesktop -batch "setup_and_run_tests"
             '''
           }
         }
