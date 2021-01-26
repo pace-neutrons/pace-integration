@@ -1,6 +1,3 @@
-matlab.addons.toolbox.installedToolboxes
-pyversion
-py.euphonic.ForceConstants
 % Read in a Horace cut (in real workflow would make a cut from larger file).
 ws = read_sqw('quartz/cut1d.sqw')
 

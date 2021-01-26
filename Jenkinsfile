@@ -90,16 +90,14 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface") {
       steps {
         script {
-          // .mltbx currently only available for Linux
-          if (isUnix()) {
-            // Creation of .mltbx is not yet in master, so use branch build
-            copyArtifacts(
-              filter: 'mltbx/*.mltbx',
-              fingerprintArtifacts: true,
-              projectName: "PACE-neutrons/horace-euphonic-interface/Branch-${env.JOB_BASE_NAME}",
-              selector: lastSuccessful()
+          // Creation of .mltbx is not yet in master, so use branch build
+          copyArtifacts(
+            filter: 'mltbx/*.mltbx',
+            fingerprintArtifacts: true,
+            // Also .mltbx not being created on Windows builds yet, so for now use Linux
+            projectName: "PACE-neutrons/horace-euphonic-interface/Branch-Scientific-Linux-7-2019b",
+            selector: lastSuccessful()
             )
-          }
         }
       }
     }
@@ -157,6 +155,13 @@ pipeline {
               module load matlab/\$MATLAB_VERSION &&
               matlab -nosplash -nodesktop -batch "setup_and_run_tests"
             '''
+          }
+          else {
+            bat """
+              CALL conda activate py36_pace_integration
+              FOR /F "tokens=*" %%i IN ('where python') DO IF NOT DEFINED PYTHON_EX_PATH SET PYTHON_EX_PATH=%%i
+              "C:\\Programming\\Matlab%MATLAB_VERSION%\\bin\\matlab.exe" -nosplash -nodesktop -wait -batch "setup_and_run_tests"
+            """
           }
         }
       }

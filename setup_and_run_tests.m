@@ -1,5 +1,6 @@
 % Set up Python
 py_ex_path = getenv('PYTHON_EX_PATH');
+disp(py_ex_path)
 try
   % Pyenv only introduced in 2019b
   pyenv('Version', py_ex_path);
@@ -24,4 +25,4 @@ matlab.addons.toolbox.installToolbox(['mltbx' filesep 'horace_euphonic_interface
 matlab.addons.toolbox.installedToolboxes
 
 % Run test script
-run('run_euphonic_integration.m');
+run_euphonic_integration
