@@ -55,7 +55,7 @@ pipeline {
           if (isUnix()) {
             sh '''
               archive_name="\$(find -name Horace-*.tar.gz)"
-              tar --wildcards --strip-components=1 -xf \$archive_name */Horace
+              mkdir Horace && tar --strip-components=1 -xf \$archive_name -C Horace
             '''
           }
           else {

@@ -26,15 +26,15 @@ Write-And-Invoke "$extract_cmd"
 # will not overwrite directories - even with the "-Force" flag
 if (Test-Path "Horace") {
   Write-Output "Removing existing Horace directory..."
-  Write-And-Invoke "Remove-Item -Force -Recurse Horace"
+  Write-And-Invoke "Remove-Item -Force -Recurse -Path Horace"
 }
 
-# Move only the required 'Horace' directory from the extracted zip
+# Move the expanded archive to the current directory and rename to Horace
 $extraction_path = [IO.Path]::Combine($env:TEMP, $zip_file.BaseName)
-$horace_path = [IO.Path]::Combine($extraction_path, "Horace")
-Write-And-Invoke "Move-Item -Force $horace_path ."
+Write-And-Invoke "Move-Item -Force -Path $extraction_path -Destination ."
+Write-And-Invoke "Rename-Item -Force -Path $($zip_file.BaseName) -NewName Horace"
 try {
-  Write-And-Invoke "Remove-Item -Force -Recurse $extraction_path -ErrorAction Stop"
+  Write-And-Invoke "Remove-Item -Force -Recurse -Path $extraction_path -ErrorAction Stop"
 } catch {
   Write-Output "Could not remove directory '$extraction_path'"
 }
