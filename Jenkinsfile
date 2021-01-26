@@ -60,6 +60,7 @@ pipeline {
       regexpFilterText: '$ref',
       regexpFilterExpression: 'refs/head/' + env.JOB_BASE_NAME
     )
+    pollSCM('')
   }
 
   stages {
