@@ -42,6 +42,26 @@ pipeline {
     label env.AGENT
   }
 
+  triggers {
+    GenericTrigger(
+      genericVariables: [
+        [key: 'ref', value: '$.ref']
+      ],
+
+      causeString: 'Triggered on $ref',
+
+      token: 'PACE_integration_webhook',
+
+      printContributedVariables: true,
+      printPostContent: true,
+
+      silentResponse: false,
+
+      regexpFilterText: '$ref',
+      regexpFilterExpression: 'refs/head/' + env.JOB_BASE_NAME
+    )
+  }
+
   stages {
     stage("Get-Horace") {
       steps {
