@@ -133,8 +133,6 @@ pipeline {
               module load conda/3 &&
               conda activate py &&
               export PYTHON_EX_PATH=`which python` &&
-              ls &&
-              ls Horace &&
               module load matlab/\$MATLAB_VERSION &&
               matlab -nosplash -nodesktop -batch "setup_and_run_tests"
             '''

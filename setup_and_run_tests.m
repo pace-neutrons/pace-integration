@@ -20,7 +20,8 @@ horace_init;
 
 % Install Horace-Euphonic-Interface
 matlab.addons.toolbox.installedToolboxes
-matlab.addons.toolbox.installToolbox('horace_euphonic_interface.mltbx');
+matlab.addons.toolbox.installToolbox(['mltbx' filesep 'horace_euphonic_interface.mltbx']);
+matlab.addons.toolbox.installedToolboxes
 
 % Run test script
 run('run_euphonic_integration.m');
