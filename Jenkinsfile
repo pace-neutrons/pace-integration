@@ -1,6 +1,10 @@
 #!groovy
 
-def get_matlab_release(String job_name) {
+def get_matlab_version_win(String job_name) {
+  return job_name[-5..-1] + '64'
+}
+
+def get_matlab_version_unix(String job_name) {
   return 'R' + job_name[-5..-1]
 }
 
@@ -22,9 +26,15 @@ def get_agent(String job_name) {
 properties([
   parameters([
     string(
-      defaultValue: get_matlab_release(env.JOB_BASE_NAME),
-      description: 'The release number of the Matlab to load e.g. R2019b.',
-      name: 'MATLAB_VERSION',
+      defaultValue: get_matlab_version_unix(env.JOB_BASE_NAME),
+      description: 'The version of Matlab to load e.g. R2019b.',
+      name: 'MATLAB_VERSION_UNIX',
+      trim: true
+    ),
+    string(
+      defaultValue: get_matlab_version_win(env.JOB_BASE_NAME),
+      description: 'The versioned name of the matlab root dir on Windows e.g. 2019b64.',
+      name: 'MATLAB_VERSION_WIN',
       trim: true
     ),
     string(
@@ -152,7 +162,7 @@ pipeline {
               module load conda/3 &&
               conda activate py &&
               export PYTHON_EX_PATH=`which python` &&
-              module load matlab/\$MATLAB_VERSION &&
+              module load matlab/R\$MATLAB_VERSION_UNIX &&
               matlab -nosplash -nodesktop -batch "setup_and_run_tests"
             '''
           }
@@ -160,7 +170,7 @@ pipeline {
             bat """
               CALL conda activate py36_pace_integration
               FOR /F "tokens=*" %%i IN ('where python') DO IF NOT DEFINED PYTHON_EX_PATH SET PYTHON_EX_PATH=%%i
-              "C:\\Programming\\Matlab%MATLAB_VERSION%\\bin\\matlab.exe" -nosplash -nodesktop -wait -batch "setup_and_run_tests"
+              "C:\\Programming\\Matlab%MATLAB_VERSION_WIN%\\bin\\matlab.exe" -nosplash -nodesktop -wait -batch "setup_and_run_tests"
             """
           }
         }
