@@ -136,6 +136,7 @@ pipeline {
                 module load gcc &&
                 conda create --name py python=3.6 -y &&
                 conda activate py &&
+                python -mpip install --upgrade pip
                 python -mpip install numpy &&
                 python -mpip install .
               '''
@@ -146,6 +147,7 @@ pipeline {
                 CALL conda create --name py36_pace_integration python=3.6 -y
                 CALL "%VS2019_VCVARSALL%" x86_amd64
                 CALL conda activate py36_pace_integration
+                python -mpip install --upgrade pip
                 python -mpip install numpy
                 python -mpip install .
               """
