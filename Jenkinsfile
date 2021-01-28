@@ -97,7 +97,7 @@ pipeline {
       }
     }
 
-    stage("Get-Horace-Euphonic-Interface") {
+    stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
           // Creation of .mltbx is not yet in master, so use branch build
@@ -111,6 +111,7 @@ pipeline {
         }
       }
     }
+
 
     stage("Get-Euphonic") {
       steps {
@@ -146,6 +147,42 @@ pipeline {
                 CALL "%VS2019_VCVARSALL%" x86_amd64
                 CALL conda activate py36_pace_integration
                 python -mpip install numpy
+                python -mpip install .
+              """
+            }
+          }
+        }
+      }
+    }
+
+    stage("Get-Horace-Euphonic-Interface-Python") {
+      steps {
+        dir('horace-euphonic-interface') {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: 'refs/heads/new_interface']],
+            extensions: [[$class: 'WipeWorkspace']],
+            userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/horace-euphonic-interface.git']]
+          ])
+        }
+      }
+
+    }
+
+    stage("Install-Horace-Euphonic-Interface-Python") {
+      steps {
+        dir('horace-euphonic-interface') {
+          script {
+            if (isUnix()) {
+              sh '''
+                module load conda/3 &&
+                conda activate py &&
+                python -mpip install .
+              '''
+            }
+            else {
+              bat """
+                CALL conda activate py36_pace_integration
                 python -mpip install .
               """
             }
