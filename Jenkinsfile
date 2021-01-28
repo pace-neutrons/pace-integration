@@ -201,7 +201,7 @@ pipeline {
               module load conda/3 &&
               conda activate py &&
               export PYTHON_EX_PATH=`which python` &&
-              module load matlab/R\$MATLAB_VERSION_UNIX &&
+              module load matlab/\$MATLAB_VERSION_UNIX &&
               matlab -nosplash -nodesktop -batch "setup_and_run_tests"
             '''
           }
