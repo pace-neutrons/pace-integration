@@ -34,5 +34,3 @@ phm = fc.calculate_qpoint_phonon_modes(euphonic.mp_grid([6 6 6]))
 dos = phm.calculate_dos(linspace(0, 100, 200) * euphonic.ureg('meV'))
 xd = dos.x_data.magnitude;
 figure; plot((xd(1:end-1)+xd(2:end))/2, dos.y_data.magnitude, '-');
-
-waitfor(hf);
