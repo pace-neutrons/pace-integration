@@ -7,7 +7,8 @@ if ~ispc
 end
 fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin')
 euobj = euphonic.CoherentCrystal(fc, 'debye_waller_grid', [6 6 6], 'temperature', 100, ...
-                                 'negative_e', true, 'asr', true, 'chunk', 10000, 'use_c', true)
+                                 'negative_e', true, 'asr', true, 'chunk', 10000, 'use_c', true, ...
+                                 'eta_scale', 0.75)
 
 % Some simulation parameters
 scale_factor = 1e12;
