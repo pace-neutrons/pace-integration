@@ -5,9 +5,9 @@ ws = read_sqw('quartz/cut1d.sqw')
 if ~ispc
     py.sys.setdlopenflags(int32(10))  % Needed on Linux due to linker issues
 end
-fc = euphonic.force_constants.from_castep('quartz/quartz.castep_bin')
-euobj = euphonic.coherent_sqw(fc, 'debye_waller_grid', [6 6 6], 'temperature', 100, ...
-                              'negative_e', true, 'asr', true, 'chunk', 10000, 'use_c', true)
+fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin')
+euobj = euphonic.CoherentCrystal(fc, 'debye_waller_grid', [6 6 6], 'temperature', 100, ...
+                                 'negative_e', true, 'asr', true, 'chunk', 10000, 'use_c', true)
 
 % Some simulation parameters
 scale_factor = 1e12;
