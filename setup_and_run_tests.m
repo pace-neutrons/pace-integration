@@ -20,7 +20,13 @@ addpath(['Horace' filesep 'Horace']);
 horace_init;
 
 % Install Horace-Euphonic-Interface
-matlab.addons.toolbox.installedToolboxes
+toolboxes = matlab.addons.toolbox.installedToolboxes;
+for i = 1:length(toolboxes)
+    if strcmp(toolboxes(i).Name, 'horace_euphonic_interface')
+        matlab.addons.toolbox.uninstallToolbox(toolboxes(i));
+        break;
+    end
+end
 matlab.addons.toolbox.installToolbox(['mltbx' filesep 'horace_euphonic_interface.mltbx']);
 matlab.addons.toolbox.installedToolboxes
 
