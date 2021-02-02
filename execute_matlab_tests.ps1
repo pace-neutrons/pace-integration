@@ -9,12 +9,14 @@ $MATLAB_VERSION_MAP = @{
   '2020b' = '9.9';
 }
 
-# Hardcode Python path for now, as we can't currently load Conda in Powershell
-#Write-And-Invoke 'conda activate py36_pace_integration'
-#Set-Item -Path Env:PYTHON_EX_PATH -Value ('where python')
-Set-Item -Path Env:PYTHON_EX_PATH -Value ('C:\Programming\miniconda3\envs\py36_pace_integration\python')
+# Set Python for Matlab to use
+Write-And-Invoke 'conda activate py36_pace_integration'
+Set-Item -Path Env:PYTHON_EX_PATH -Value (Get-Command python).Source
 
+# Get Matlab root directory from registry
 $MATLAB_ROOT = (Get-ItemProperty Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Mathworks\MATLAB\$($MATLAB_VERSION_MAP[$Env:MATLAB_VERSION])).MATLABROOT
+
+# Set up Matlab and run tests
 $MATLAB_PROCESS = Start-Process -FilePath "$MATLAB_ROOT\bin\matlab.exe" -Wait -PassThru -ArgumentList '-nosplash', '-nodesktop', '-wait', '-batch', 'setup_and_run_tests'
 
 exit $MATLAB_PROCESS.ExitCode
