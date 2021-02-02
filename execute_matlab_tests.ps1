@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-MATLAB_VERSION_MAP = @{
+$MATLAB_VERSION_MAP = @{
   '2018a' = '9.4';
   '2018b' = '9.5';
   '2019a' = '9.6';
