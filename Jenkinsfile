@@ -41,6 +41,9 @@ pipeline {
   agent {
     label env.AGENT
   }
+  environment {
+    MATLAB_LOG_FILE = "pace_integration_tests.log"
+  }
 
   triggers {
     upstream(
@@ -197,17 +200,20 @@ pipeline {
               conda activate py &&
               export PYTHON_EX_PATH=`which python` &&
               module load matlab/R\$MATLAB_VERSION &&
-              matlab -nosplash -nodesktop -batch "setup_and_run_tests"
+              matlab -nosplash -nodesktop -log $MATLAB_LOG_FILE -batch "setup_and_run_tests"
             '''
           }
           else {
-	    powershell './execute_matlab_tests.ps1'
+              powershell './execute_matlab_tests.ps1'
           }
         }
       }
     }
   }
   post {
+    always {
+      archiveArtifacts artifacts: "${env.MATLAB_LOG_FILE}"
+    }
     unsuccessful {
       script {
         mail (

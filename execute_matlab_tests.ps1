@@ -15,7 +15,7 @@ $MATLAB_VERSION_MAP = @{
 
 # Set Python for Matlab to use
 Write-And-Invoke 'conda activate py36_pace_integration'
-Set-Item -Path Env:PYTHON_EX_PATH -Value (Get-Command python).Source
+Write-And-Invoke "Set-Item -Path Env:PYTHON_EX_PATH -Value (Get-Command python).Source"
 
 # Get Matlab root directory from registry
 Try {
@@ -30,10 +30,11 @@ Try {
 $MATLAB_ROOT = ($MATLAB_REG).MATLABROOT
 
 # Set up Matlab and run tests
-$MATLAB_PROCESS = Start-Process `
-  -FilePath "$MATLAB_ROOT\bin\matlab.exe" `
-  -Wait `
-  -PassThru `
-  -ArgumentList '-nosplash', '-nodesktop', '-wait', '-batch', 'setup_and_run_tests'
+$MATLAB_COMMAND =  "Start-Process -FilePath ""$MATLAB_ROOT\bin\matlab.exe """
+$MATLAB_COMMAND += "-Wait -PassThru "
+$MATLAB_COMMAND += "-ArgumentList '-nosplash', '-nodesktop', '-wait', '-log' 'Env:MATLAB_LOG_FILE' "
+$MATLAB_COMMAND += "'-batch', 'setup_and_run_tests'"
+Write-Output "$MATLAB_COMMAND"
+$MATLAB_PROCESS = "$MATLAB_COMMAND"
 
 exit $MATLAB_PROCESS.ExitCode
