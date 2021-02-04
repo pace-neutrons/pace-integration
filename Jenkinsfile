@@ -138,10 +138,10 @@ pipeline {
             }
             else {
               bat """
-                CALL conda remove --name py36_pace_integration --all -y
-                CALL conda create --name py36_pace_integration python=3.6 -y
+                CALL conda remove --name py36_pace_integration_%MATLAB_VERSION% --all -y
+                CALL conda create --name py36_pace_integration_%MATLAB_VERSION% python=3.6 -y
                 CALL "%VS2019_VCVARSALL%" x86_amd64
-                CALL conda activate py36_pace_integration
+                CALL conda activate py36_pace_integration_%MATLAB_VERSION%
                 python -mpip install --upgrade pip
                 python -mpip install numpy
                 python -mpip install .
@@ -179,7 +179,7 @@ pipeline {
             }
             else {
               bat """
-                CALL conda activate py36_pace_integration
+                CALL conda activate py36_pace_integration_%MATLAB_VERSION%
                 python -mpip install .
               """
             }
