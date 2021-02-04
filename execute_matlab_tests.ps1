@@ -14,8 +14,11 @@ $MATLAB_VERSION_MAP = @{
 }
 
 # Set Python for Matlab to use
-Write-And-Invoke "conda activate py36_pace_integration_$env:MATLAB_VERSION"
+conda activate py36_pace_integration_$env:MATLAB_VERSION
+$PYTHON_EX_PATH = (Get-Command python).Source
+Write-Output "$PYTHON_EX_PATH"
 Write-And-Invoke "Set-Item -Path Env:PYTHON_EX_PATH -Value (Get-Command python).Source"
+Write-Output "$env:PYTHON_EX_PATH"
 
 # Get Matlab root directory from registry
 Try {

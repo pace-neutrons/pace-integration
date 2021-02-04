@@ -3,11 +3,11 @@ py_ex_path = getenv('PYTHON_EX_PATH');
 disp(py_ex_path)
 try
   % Pyenv only introduced in 2019b
-  pyenv('Version', py_ex_path);
+  pyenv('Version', py_ex_path)
 catch ME
   if (strcmp(ME.identifier,'MATLAB:UndefinedFunction'))
     % Pyversion is deprecated but use if pyenv not available
-    pyversion(py_ex_path);
+    pyversion(py_ex_path)
   else
     rethrow(ME);
   end
@@ -31,7 +31,8 @@ matlab.addons.toolbox.installToolbox(['mltbx' filesep 'horace_euphonic_interface
 matlab.addons.toolbox.installedToolboxes
 
 % Run tests
-res = runtests('EuphonicDisp2SqwTest.m');
+tests = matlab.unittest.TestSuite.fromFile('EuphonicDisp2SqwTest.m');
+res = run(tests);
 passed = [res.Passed];
 if ~all(passed)
     quit(1);
