@@ -13,24 +13,24 @@ $MATLAB_VERSION_MAP = @{
   '2020b' = '9.9';
 }
 
-# Set Python for Matlab to use
-conda activate py36_pace_integration_$env:MATLAB_VERSION
-$PYTHON_EX_PATH = (Get-Command python).Source
-Write-Output "$PYTHON_EX_PATH"
-Write-And-Invoke "Set-Item -Path Env:PYTHON_EX_PATH -Value (Get-Command python).Source"
-Write-Output "$env:PYTHON_EX_PATH"
-
-# Get Matlab root directory from registry
+# Get Matlab and Conda root directories from registry
 Try {
+  $CONDA_REG = Get-ItemProperty `
+    Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Python\ContinuumAnalytics\Anaconda37-64\InstallPath `
+    -ErrorAction Stop
   $MATLAB_REG = Get-ItemProperty `
     Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Mathworks\MATLAB\$($MATLAB_VERSION_MAP[$Env:MATLAB_VERSION]) `
     -ErrorAction Stop
 } Catch [System.Management.Automation.ItemNotFoundException] {
-  Write-Error ("Couldn't find Matlab in the Windows registry, ensure this Matlab version is " +
+  Write-Error ("Couldn't find one of Conda, Matlab in the Windows registry, ensure the correct software version is " +
                "definitely installed and the correct Powershell architecture is being used. A 32-bit " +
 	       "Powershell may not be able to search a 64-bit registry and vice versa`n$($_.Exception)")
 }
+# Get path to MATLAB exe
 $MATLAB_ROOT = ($MATLAB_REG).MATLABROOT
+# Get path to correct Python in conda env, and set as environment variable to be accessed by the Matlab test script
+$PYTHON_EX_PATH = "$(($CONDA_REG).'(default)')\envs\py36_pace_integration_$env:MATLAB_VERSION\python.exe"
+Write-And-Invoke "Set-Item -Path Env:PYTHON_EX_PATH -Value $PYTHON_EX_PATH"
 
 # Set up Matlab and run tests
 # Must be run via System.Diagnostics rather than Start-Process to redirect
