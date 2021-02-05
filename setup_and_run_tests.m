@@ -31,8 +31,7 @@ matlab.addons.toolbox.installToolbox(['mltbx' filesep 'horace_euphonic_interface
 matlab.addons.toolbox.installedToolboxes
 
 % Run tests
-tests = matlab.unittest.TestSuite.fromFile('EuphonicDisp2SqwTest.m');
-res = run(tests);
+res = runtests('EuphonicDisp2SqwTest.m');
 passed = [res.Passed];
 if ~all(passed)
     quit(1);
