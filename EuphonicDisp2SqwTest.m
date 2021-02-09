@@ -10,9 +10,12 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
 
     methods(Test)
         function testQuartzCoherentCrystalDisp2sqweval(testCase)
-            ws = read_sqw('quartz/cut1d.sqw');
+            disp('Running testQuartzCoherentCrystalDisp2sqweval...');
+            disp('Reading sqw...');
+            ws = read_sqw('quartz/cut1d.sqw')
 
             % Set up simulation
+	    disp('Setting up CoherentCrystal...');
             scale_factor = 1e12;
             effective_fwhm = 1;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
@@ -22,10 +25,13 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
                 'eta_scale', 0.75);
 
             % Run simulation
+	    disp('Running disp2sqw_eval');
             wsim = disp2sqw_eval(ws, @euobj.horace_disp, {scale_factor}, effective_fwhm);
-            
+
+            disp('Reading expected sqw...')
             expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_eval.sqw');
 
+            disp('Testing result...')
             testCase.verifyTrue( ...
                 all(ismembertol(wsim.data.s, ...
                                 expected_wsim.data.s, ...
@@ -33,9 +39,12 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
         end
 
         function testQuartzCoherentCrystalDisp2sqwTobyfit(testCase)
+            disp('Running testQuartzCoherentCrystalDisp2sqwTobyfit...');
+            disp('Reading sqw...');
             ws = read_sqw('quartz/cut1d.sqw');
             
             % Set up simulation
+	    disp('Setting up CoherentCrystal...');
             intrinsic_fwhm = 0.1;
             scale_factor = 1e12;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
@@ -45,6 +54,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
                 'eta_scale', 0.75);
 
             % Run simulation with resolution convolution
+	    disp('Running disp2sqw_eval with resolution convolution');
             is_crystal = true; xgeom = [0,0,1]; ygeom = [0,1,0]; shape = 'cuboid'; shape_pars = [0.01,0.05,0.01];
             ws = set_sample(ws, IX_sample(is_crystal, xgeom, ygeom, shape, shape_pars));
             ei = 40; freq = 400; chopper = 'g';
@@ -53,11 +63,13 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             kk = kk.set_fun(@disp2sqw, {@euobj.horace_disp, {scale_factor}, [intrinsic_fwhm]});
             wsim = kk.simulate('fore');
 
+            disp('Reading expected sqw...')
             expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_tobyfit.sqw');
 
             % Tobyfit results are non-deterministic and have high errors
             % when running such a quick test case, allow generous relative
             % errors
+            disp('Testing result...')
             rel_err = abs(wsim.data.s - expected_wsim.data.s)/expected_wsim.data.s;
             testCase.verifyLessThan(rel_err, 0.5);
 
