@@ -29,7 +29,7 @@ Try {
 # Get path to MATLAB exe
 $MATLAB_ROOT = ($MATLAB_REG).MATLABROOT
 # Get path to correct Python in conda env, and set as environment variable to be accessed by the Matlab test script
-$PYTHON_EX_PATH = "$(($CONDA_REG).'(default)')\envs\py36_pace_integration_$env:MATLAB_VERSION\python.exe"
+$PYTHON_EX_PATH = "$(($CONDA_REG).'(default)')\envs\py36_pace_integration_$env:MATLAB_VERSION\python"
 Write-And-Invoke "Set-Item -Path Env:PYTHON_EX_PATH -Value $PYTHON_EX_PATH"
 
 # Set up Matlab and run tests

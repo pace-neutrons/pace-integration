@@ -28,10 +28,10 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
 	    disp('Running disp2sqw_eval');
             wsim = disp2sqw_eval(ws, @euobj.horace_disp, {scale_factor}, effective_fwhm);
 
-            disp('Reading expected sqw...')
+            disp('Reading expected sqw...');
             expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_eval.sqw');
 
-            disp('Testing result...')
+            disp('Testing result...');
             testCase.verifyTrue( ...
                 all(ismembertol(wsim.data.s, ...
                                 expected_wsim.data.s, ...
@@ -63,13 +63,13 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             kk = kk.set_fun(@disp2sqw, {@euobj.horace_disp, {scale_factor}, [intrinsic_fwhm]});
             wsim = kk.simulate('fore');
 
-            disp('Reading expected sqw...')
+            disp('Reading expected sqw...');
             expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_tobyfit.sqw');
 
             % Tobyfit results are non-deterministic and have high errors
             % when running such a quick test case, allow generous relative
             % errors
-            disp('Testing result...')
+            disp('Testing result...');
             rel_err = abs(wsim.data.s - expected_wsim.data.s)/expected_wsim.data.s;
             testCase.verifyLessThan(rel_err, 0.5);
 
