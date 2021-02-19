@@ -131,7 +131,7 @@ pipeline {
                 module load gcc &&
                 conda create --name py python=3.6 -y &&
                 conda activate py &&
-                python -mpip install --upgrade pip
+                python -mpip install --upgrade pip &&
                 python -mpip install numpy &&
                 python -mpip install .
               '''

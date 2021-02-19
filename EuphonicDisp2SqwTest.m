@@ -15,7 +15,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             ws = read_sqw('quartz/cut1d.sqw')
 
             % Set up simulation
-	    disp('Setting up CoherentCrystal...');
+            disp('Setting up CoherentCrystal...');
             scale_factor = 1e12;
             effective_fwhm = 1;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
@@ -25,17 +25,20 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
                 'eta_scale', 0.75);
 
             % Run simulation
-	    disp('Running disp2sqw_eval');
+            disp('Running disp2sqw_eval');
             wsim = disp2sqw_eval(ws, @euobj.horace_disp, {scale_factor}, effective_fwhm);
 
             disp('Reading expected sqw...');
             expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_eval.sqw');
 
             disp('Testing result...');
-            testCase.verifyTrue( ...
-                all(ismembertol(wsim.data.s, ...
-                                expected_wsim.data.s, ...
-                                1e-5*mean(expected_wsim.data.s)), 'all'));
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            import matlab.unittest.constraints.RelativeTolerance
+            bounds = AbsoluteTolerance(1e-5*mean(expected_wsim.data.s)) | RelativeTolerance(1e-5);
+            testCase.verifyThat(wsim.data.s, ...
+                IsEqualTo(expected_wsim.data.s, 'within', bounds));
+
         end
 
         function testQuartzCoherentCrystalDisp2sqwTobyfit(testCase)
@@ -70,9 +73,12 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             % when running such a quick test case, allow generous relative
             % errors
             disp('Testing result...');
-            rel_err = abs(wsim.data.s - expected_wsim.data.s)/expected_wsim.data.s;
-            testCase.verifyLessThan(rel_err, 0.5);
-
+            import matlab.unittest.constraints.IsEqualTo
+            import matlab.unittest.constraints.AbsoluteTolerance
+            import matlab.unittest.constraints.RelativeTolerance
+            bounds = AbsoluteTolerance(0.1*mean(expected_wsim.data.s)) | RelativeTolerance(2.5);
+            testCase.verifyThat(wsim.data.s, ...
+                IsEqualTo(expected_wsim.data.s, 'within', bounds));
         end
     end
 end
