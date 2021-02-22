@@ -1,15 +1,21 @@
 #!groovy
 
+def get_platform(String job_name) {
+  // Get everything before last hyphen, this should be the name of the platform
+  // e.g. 'Scientific-Linux-7'
+  return job_name.tokenize('-')[0..-2].join('-')
+}
+
 def get_matlab_version(String job_name) {
   return job_name[-5..-1]
 }
 
 def get_agent(String job_name) {
-  if (job_name.contains('Scientific-Linux-7')) {
+  if (get_platform(job_name) == 'Scientific-Linux-7') {
     withCredentials([string(credentialsId: 'sl7_agent', variable: 'agent')]) {
       return "${agent}"
     }
-  } else if (job_name.contains('Windows-10')) {
+  } else if (get_platform(job_name) == 'Windows-10') {
     withCredentials([string(credentialsId: 'win10_agent', variable: 'agent')]) {
       return "${agent}"
     }
@@ -100,13 +106,12 @@ pipeline {
             filter: 'mltbx/*.mltbx',
             fingerprintArtifacts: true,
             // Also .mltbx not being created on Windows builds yet, so for now use Linux
-            projectName: "PACE-neutrons/horace-euphonic-interface/Branch-Scientific-Linux-7-2019b",
+            projectName: 'PACE-neutrons/horace-euphonic-interface/Branch-' + get_platform(env.JOB_BASE_NAME) + '-2019b',
             selector: lastSuccessful()
             )
         }
       }
     }
-
 
     stage("Get-Euphonic") {
       steps {
@@ -144,42 +149,6 @@ pipeline {
                 CALL conda activate py36_pace_integration_%MATLAB_VERSION%
                 python -mpip install --upgrade pip
                 python -mpip install numpy
-                python -mpip install .
-              """
-            }
-          }
-        }
-      }
-    }
-
-    stage("Get-Horace-Euphonic-Interface-Python") {
-      steps {
-        dir('horace-euphonic-interface') {
-          checkout([
-            $class: 'GitSCM',
-            branches: [[name: 'refs/heads/new_interface']],
-            extensions: [[$class: 'WipeWorkspace']],
-            userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/horace-euphonic-interface.git']]
-          ])
-        }
-      }
-
-    }
-
-    stage("Install-Horace-Euphonic-Interface-Python") {
-      steps {
-        dir('horace-euphonic-interface') {
-          script {
-            if (isUnix()) {
-              sh '''
-                module load conda/3 &&
-                conda activate py &&
-                python -mpip install .
-              '''
-            }
-            else {
-              bat """
-                CALL conda activate py36_pace_integration_%MATLAB_VERSION%
                 python -mpip install .
               """
             }
