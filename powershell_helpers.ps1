@@ -53,3 +53,40 @@ function Invoke-In-Dir {
     Pop-Location
   }
 }
+
+function Get-From-Registry ([string]$key) {
+<#
+  .SYNOPSIS
+    Search the Windows registry for a specific key and return its value
+  .DESCRIPTION
+    Uses `Get-ItemProperty` to get the key. Uses `Write-Error` if the key can't
+    be found
+  .PARAMETER key
+    The key to use e.g. HKEY_LOCAL_MACHINE\SOFTWARE\Mathworks\MATLAB\9.8
+  .EXAMPLE
+    Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Mathworks\MATLAB\9.8"
+#>
+  Try {
+    $reg = Get-ItemProperty "Registry::$key" -ErrorAction Stop
+  } Catch [System.Management.Automation.ItemNotFoundException] {
+    Write-Error ("Couldn't find $key in the Windows registry, ensure the correct software version is " +
+                 "definitely installed and the correct Powershell architecture is being used. A 32-bit " +
+                 "Powershell may not be able to search a 64-bit registry and vice versa`n$($_.Exception)")
+  }
+  return $reg
+}
+
+function Get-Conda-Env-Dir () {
+<#
+  .SYNOPSIS
+    Gets the path of the conda env used for Windows pace-integration tests
+  .DESCRIPTION
+    Uses `Get-From-Registry` to get the base dir, then appends the environment
+	name.  The MATLAB_VERSION environment variable must be set e.g. 2019b
+  .EXAMPLE
+    $CONDA_ENV = Get-Conda-Env-Dir
+#>
+    $conda_reg = Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Python\ContinuumAnalytics\Anaconda37-64\InstallPath"
+	$conda_dir = "$(($conda_reg).'(default)')\envs\py36_pace_integration_$env:MATLAB_VERSION"
+	return $conda_dir
+}
