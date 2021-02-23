@@ -95,7 +95,7 @@ pipeline {
             '''
           }
           else {
-            powershell './extract_horace_artifact.ps1'
+            powershell './powershell_scripts/extract_horace_artifact.ps1'
           }
 
         }
@@ -140,7 +140,7 @@ pipeline {
             '''
           }
           else {
-            powershell './create_conda_environment.ps1'
+            powershell './powershell_scripts/create_conda_environment.ps1'
             }
           }
       }
@@ -187,7 +187,7 @@ pipeline {
             '''
           }
           else {
-              powershell './execute_matlab_tests.ps1'
+              powershell './powershell_scripts/execute_matlab_tests.ps1'
           }
         }
       }
