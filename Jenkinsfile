@@ -48,6 +48,10 @@ pipeline {
     label env.AGENT
   }
 
+  environment {
+    CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
+  }
+
   triggers {
     upstream(
       upstreamProjects: "PACE-neutrons/Horace/Scientific-Linux-7-2019b," +
@@ -126,6 +130,22 @@ pipeline {
       }
     }
 
+    stage("Create-Conda-Environment") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh '''
+              module load conda/3 &&
+              conda create --name \$CONDA_ENV_NAME python=3.6 -y
+            '''
+          }
+          else {
+            powershell './create_conda_environment.ps1'
+            }
+          }
+      }
+    }
+
     stage("Install-Euphonic") {
       steps {
         dir('Euphonic') {
@@ -134,8 +154,7 @@ pipeline {
               sh '''
                 module load conda/3 &&
                 module load gcc &&
-                conda create --name py python=3.6 -y &&
-                conda activate py &&
+                conda activate \$CONDA_ENV_NAME &&
                 python -mpip install --upgrade pip &&
                 python -mpip install numpy &&
                 python -mpip install .
@@ -143,10 +162,8 @@ pipeline {
             }
             else {
               bat """
-                CALL conda remove --name py36_pace_integration_%MATLAB_VERSION% --all -y
-                CALL conda create --name py36_pace_integration_%MATLAB_VERSION% python=3.6 -y
                 CALL "%VS2019_VCVARSALL%" x86_amd64
-                CALL conda activate py36_pace_integration_%MATLAB_VERSION%
+                CALL conda activate %CONDA_ENV_NAME%
                 python -mpip install --upgrade pip
                 python -mpip install numpy
                 python -mpip install .
@@ -163,7 +180,7 @@ pipeline {
           if (isUnix()) {
             sh '''
               module load conda/3 &&
-              conda activate py &&
+              conda activate \$CONDA_ENV_NAME &&
               export PYTHON_EX_PATH=`which python` &&
               module load matlab/R\$MATLAB_VERSION &&
               matlab -nosplash -nodesktop -batch "setup_and_run_tests"

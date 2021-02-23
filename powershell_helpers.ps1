@@ -82,11 +82,11 @@ function Get-Conda-Env-Dir () {
     Gets the path of the conda env used for Windows pace-integration tests
   .DESCRIPTION
     Uses `Get-From-Registry` to get the base dir, then appends the environment
-	name.  The MATLAB_VERSION environment variable must be set e.g. 2019b
+	name.  The CONDA_ENV_NAME environment variable must be set e.g. py36_pace_integration_2019b
   .EXAMPLE
-    $CONDA_ENV = Get-Conda-Env-Dir
+    $CONDA_ENV_DIR = Get-Conda-Env-Dir
 #>
     $conda_reg = Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Python\ContinuumAnalytics\Anaconda37-64\InstallPath"
-	$conda_dir = "$(($conda_reg).'(default)')\envs\py36_pace_integration_$env:MATLAB_VERSION"
-	return $conda_dir
+    $conda_dir = "$(($conda_reg).'(default)')\envs\$env:CONDA_ENV_NAME"
+    return $conda_dir
 }
