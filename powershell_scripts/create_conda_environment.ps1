@@ -9,7 +9,7 @@ $CONDA_ENV_DIR = Get-Conda-Env-Dir
 try {
   Write-And-Invoke "Remove-Item -Force -Recurse -Path $CONDA_ENV_DIR -ErrorAction Stop"
 } catch {
-  Write-Output "Could not remove directory '$CONDA_ENV_DIR'"
+  Write-Output "Could not remove directory '$CONDA_ENV_DIR'`n$($_.Exception)"
 }
 
 Write-And-Invoke "conda create --name $env:CONDA_ENV_NAME python=3.6 -y"
