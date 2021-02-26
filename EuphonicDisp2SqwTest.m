@@ -42,6 +42,11 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
         end
 
         function testQuartzCoherentCrystalDisp2sqwTobyfit(testCase)
+            FIXED_SEED = 101;
+            [rng_state, old_rng_state] = seed_rng(FIXED_SEED);
+            clean_up = onCleanup(@() rng(old_rng_state));
+            fprintf('RNG seed: %i\n', rng_state.Seed)
+
             disp('Running testQuartzCoherentCrystalDisp2sqwTobyfit...');
             disp('Reading sqw...');
             ws = read_sqw('quartz/cut1d.sqw');
@@ -76,7 +81,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
             import matlab.unittest.constraints.RelativeTolerance
-            bounds = AbsoluteTolerance(0.1*mean(expected_wsim.data.s)) | RelativeTolerance(2.5);
+            bounds = AbsoluteTolerance(1e-10*mean(expected_wsim.data.s)) | RelativeTolerance(1e-5);
             testCase.verifyThat(wsim.data.s, ...
                 IsEqualTo(expected_wsim.data.s, 'within', bounds));
         end
