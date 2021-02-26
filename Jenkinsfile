@@ -53,11 +53,6 @@ pipeline {
   }
 
   triggers {
-    upstream(
-      upstreamProjects: "PACE-neutrons/Horace/Scientific-Linux-7-2019b," +
-                        "PACE-neutrons/Euphonic/Euphonic Linux Pipeline/master," +
-                        "PACE-neutrons/horace-euphonic-interface/Branch-Scientific-Linux-7-2019b",
-      threshold: hudson.model.Result.SUCCESS)
     GenericTrigger(
       genericVariables: [
         [key: 'ref', value: '$.ref']
@@ -76,6 +71,7 @@ pipeline {
       regexpFilterExpression: 'refs/head/' + env.JOB_BASE_NAME
     )
     pollSCM('')
+    cron('H 5 * * 2-6')
   }
 
   stages {
