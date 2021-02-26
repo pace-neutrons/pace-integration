@@ -191,12 +191,17 @@ pipeline {
   }
   post {
     unsuccessful {
-      script {
-        mail (
-          to: "rebecca.fair@stfc.ac.uk",
-          subject: "PACE pipeline failed: ${env.JOB_BASE_NAME}",
-          body: "See ${env.BUILD_URL}"
-        )
+      withCredentials([string(credentialsId: 'Euphonic_contact_email', variable: 'euphonic_email'),
+                       string(credentialsId: 'Horace_contact_email', variable: 'horace_email')]){
+        script {
+          if (isUnix()) {
+            mail (
+              to: "${euphonic_email},${horace_email}",
+              subject: "PACE integration pipeline failed: ${env.JOB_BASE_NAME}",
+              body: "See ${env.BUILD_URL}"
+            )
+          }
+        }
       }
     }
 
