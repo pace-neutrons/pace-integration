@@ -1,4 +1,5 @@
 #!groovy
+import groovy.json.JsonSlurper
 
 def is_master_build(String job_name) {
   // Master builds start with the platform, branch builds start with
@@ -39,6 +40,24 @@ def get_agent(String job_name) {
   }
 }
 
+def http_request_get(String url) {
+  def response
+  if (isUnix()) {
+    response = sh(
+      script: "echo \$(curl --request GET ${url})",
+      returnStdout: true
+    )
+  } else {
+    response = powershell(
+      script: """
+        [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+        Invoke-RestMethod -URI ${url} -Method 'GET'
+      """,
+      returnStdout: true
+    )
+  }
+  return new JsonSlurper().parseText(response)
+}
 
 properties([
   parameters([
@@ -99,10 +118,8 @@ pipeline {
             selec = lastSuccessful()
             project_name = project_name + get_platform(env.JOB_BASE_NAME) + '-' + get_matlab_version(env.JOB_BASE_NAME)
           } else {
-            def response = httpRequest(
-              url: 'https://api.github.com/repos/pace-neutrons/Horace/commits/' + env.HORACE_BRANCH + '/status',
-              httpMode: 'GET'
-            )
+            def response = http_request_get(
+              'https://api.github.com/repos/pace-neutrons/Horace/commits/' + env.HORACE_BRANCH + '/status')
             def build_url = ''
             for (status in response.statuses) {
               if (get_platform(status.context) == get_platform(env.JOB_BASE_NAME) && get_matlab_version(status.context) == get_matlab_version(env.JOB_BASE_NAME)) {
@@ -137,10 +154,8 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          def response = httpRequest(
-            url: 'https://api.github.com/repos/pace-neutrons/horace-euphonic-interface/commits/' + env.HORACE_EUPHONIC_INTERFACE_BRANCH + '/status',
-            httpMode: 'GET'
-          )
+          def response = http_request_get(
+            'https://api.github.com/repos/pace-neutrons/horace-euphonic-interface/commits/' + env.HORACE_EUPHONIC_INTERFACE_BRANCH + '/status')
           build_number = response.statuses[0].target_url.tokenize('/')[-1]
           // horace-euphonic-interface doesn't have any mex code, so using
           // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
