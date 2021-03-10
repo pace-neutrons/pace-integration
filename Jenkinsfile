@@ -101,12 +101,11 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          // Creation of .mltbx is not yet in master, so use branch build
           copyArtifacts(
             filter: 'mltbx/*.mltbx',
             fingerprintArtifacts: true,
-            // Also .mltbx not being created on Windows builds yet, so for now use Linux
-            projectName: 'PACE-neutrons/horace-euphonic-interface/Branch-' + get_platform(env.JOB_BASE_NAME) + '-2019b',
+            // .mltbx is only being produced on 2019b builds
+            projectName: 'PACE-neutrons/horace-euphonic-interface/' + get_platform(env.JOB_BASE_NAME) + '-2019b',
             selector: lastSuccessful()
             )
         }
