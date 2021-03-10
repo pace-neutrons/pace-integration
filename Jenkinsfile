@@ -4,18 +4,19 @@ def is_master_build(String job_name) {
   // Master builds start with the platform, branch builds start with
   // 'Branch-' or 'PR-'
   if (job_name.tokenize('-')[0] in ['Branch', 'PR']) {
-    return true
-  } else {
     return false
+  } else {
+    return true
   }
 }
 
 def get_platform(String job_name) {
   // Get name of the platform e.g. 'Scientific-Linux-7'
+  def idxi
   if (is_master_build(job_name)) {
-    def idxi = 0
+    idxi = 0
   } else {
-    def idxi = 1
+    idxi = 1
   }
   return job_name.tokenize('-')[idxi..-2].join('-')
 }
@@ -93,8 +94,9 @@ pipeline {
       steps {
         script {
           def project_name = "PACE-neutrons/Horace/"
+          def selec
           if (is_master_build(env.JOB_BASE_NAME) || env.HORACE_BRANCH == 'master') {
-            def selec = lastSuccessful()
+            selec = lastSuccessful()
             project_name = project_name + get_platform(env.JOB_BASE_NAME) + '-' + get_matlab_version(env.JOB_BASE_NAME)
           } else {
             def response = httpRequest(
@@ -109,7 +111,7 @@ pipeline {
                 break
               }
             }
-            def selec = specific(buildNumber: build_number)
+            selec = specific(buildNumber: build_number)
             project_name = project_name + env.JOB_BASE_NAME
           }
           copyArtifacts(
