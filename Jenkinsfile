@@ -1,9 +1,23 @@
 #!groovy
 
+def is_master_build(String job_name) {
+  // Master builds start with the platform, branch builds start with
+  // 'Branch-' or 'PR-'
+  if (job_name.tokenize('-')[0] in ['Branch', 'PR']) {
+    return true
+  } else {
+    return false
+  }
+}
+
 def get_platform(String job_name) {
-  // Get everything before last hyphen, this should be the name of the platform
-  // e.g. 'Scientific-Linux-7'
-  return job_name.tokenize('-')[0..-2].join('-')
+  // Get name of the platform e.g. 'Scientific-Linux-7'
+  if (is_master_build(job_name)) {
+    def idxi = 0
+  } else {
+    def idxi = 1
+  }
+  return job_name.tokenize('-')[idxi..-2].join('-')
 }
 
 def get_matlab_version(String job_name) {
@@ -38,6 +52,24 @@ properties([
       description: 'The agent to execute the pipeline on.',
       name: 'AGENT',
       trim: true
+    ),
+    string(
+      defaultValue: 'master',
+      description: 'The branch of Horace to test against',
+      name: 'HORACE_BRANCH',
+      trim: true
+    ),
+    string(
+      defaultValue: 'master',
+      description: 'The branch of Euphonic to test against',
+      name: 'EUPHONIC_BRANCH',
+      trim: true
+    ),
+    string(
+      defaultValue: 'master',
+      description: 'The branch of horace-euphonic-interface to test against',
+      name: 'HORACE_EUPHONIC_INTERFACE_BRANCH',
+      trim: true
     )
   ])
 ])
@@ -53,18 +85,38 @@ pipeline {
   }
 
   triggers {
-    cron('H 5 * * 2-6')
+    cron(is_master_build(env.JOB_BASE_NAME) ? 'H 5 * * 2-6' : '')
   }
 
   stages {
     stage("Get-Horace") {
       steps {
         script {
+          def project_name = "PACE-neutrons/Horace/"
+          if (is_master_build(env.JOB_BASE_NAME) || env.HORACE_BRANCH == 'master') {
+            def selec = lastSuccessful()
+            project_name = project_name + get_platform(env.JOB_BASE_NAME) + '-' + get_matlab_version(env.JOB_BASE_NAME)
+          } else {
+            def response = httpRequest(
+              url: 'https://api.github.com/repos/pace-neutrons/Horace/commits/' + env.HORACE_BRANCH + '/status',
+              httpMode: 'GET'
+            )
+            def build_url = ''
+            for (status in response.statuses) {
+              if (get_platform(status.context) == get_platform(env.JOB_BASE_NAME) && get_matlab_version(status.context) == get_matlab_version(env.JOB_BASE_NAME)) {
+                build_url = status.target_url
+                build_number = build_url.tokenize('/')[-1]
+                break
+              }
+            }
+            def selec = specific(buildNumber: build_number)
+            project_name = project_name + env.JOB_BASE_NAME
+          }
           copyArtifacts(
             filter: 'build/Horace-*',
             fingerprintArtifacts: true,
             projectName: "PACE-neutrons/Horace/${env.JOB_BASE_NAME}",
-            selector: lastSuccessful()
+            selector: selec
           )
           if (isUnix()) {
             sh '''
@@ -83,12 +135,19 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
+          def response = httpRequest(
+            url: 'https://api.github.com/repos/pace-neutrons/horace-euphonic-interface/commits/' + env.HORACE_EUPHONIC_INTERFACE_BRANCH + '/status',
+            httpMode: 'GET'
+          )
+          build_number = response.statuses[0].target_url.tokenize('/')[-1]
+          // horace-euphonic-interface doesn't have any mex code, so using
+          // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
+          // on 2018b and statuses aren't reported for Windows builds
           copyArtifacts(
             filter: 'mltbx/*.mltbx',
             fingerprintArtifacts: true,
-            // .mltbx is only being produced on 2019b builds
-            projectName: 'PACE-neutrons/horace-euphonic-interface/' + get_platform(env.JOB_BASE_NAME) + '-2019b',
-            selector: lastSuccessful()
+            projectName: 'PACE-neutrons/horace-euphonic-interface/Scientific-Linux-7-2019b',
+            selector: specific(buildNumber: build_number)
             )
         }
       }
@@ -99,7 +158,7 @@ pipeline {
         dir('Euphonic') {
           checkout([
             $class: 'GitSCM',
-            branches: [[name: 'refs/heads/master']],
+            branches: [[name: "refs/heads/${env.EUPHONIC_BRANCH}"]],
             extensions: [[$class: 'WipeWorkspace']],
             userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/Euphonic.git']]
           ])
