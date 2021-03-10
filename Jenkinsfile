@@ -51,12 +51,21 @@ def http_request_get(String url) {
     response = powershell(
       script: """
         [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
-        Invoke-RestMethod -URI ${url} -Method 'GET'
+        Invoke-RestMethod -URI ${url} -Method 'GET' | ConvertTo-Json
       """,
       returnStdout: true
     )
   }
-  return new JsonSlurper().parseText(response)
+  return json_string_to_map(response)
+}
+
+@NonCPS
+def json_string_to_map(String json_string) {
+  def lazy_map = new JsonSlurper().parseText(json_string)
+  // JsonSlurper returns a non-serializable LazyMap, so convert to regular map
+  def m = [:]
+  m.putAll(lazy_map)
+  return m
 }
 
 properties([
