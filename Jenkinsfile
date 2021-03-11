@@ -39,12 +39,12 @@ def get_agent(String job_name) {
   }
 }
 
-def get_build_info(String repo, String branch, boolean match_build) {
+def get_build_info(String repo, String branch, String match_context) {
   def job_name
   def build_num
   def script_cmd = "python get_build_info.py ${repo} ${branch}"
-  if (match_build) {
-    script_cmd += " --match-build"
+  if (match_context) {
+    script_cmd += " --match-context ${match_context}"
   }
   if (isUnix()) {
     build_info = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
@@ -123,7 +123,8 @@ pipeline {
             selec = lastSuccessful()
             project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
           } else {
-	    def (job_name, build_num) = get_build_info('Horace', env.HORACE_BRANCH, true)
+	    def (job_name, build_num) = get_build_info(
+	        'Horace', env.HORACE_BRANCH, "${env.PLATFORM}-${env.MATLAB_VERSION}")
             selec = specific(buildNumber: build_num)
             project_name = project_name + job_name
           }
@@ -150,7 +151,8 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-	  def (job_name, build_num) = get_build_info('horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, false)
+	  def (job_name, build_num) = get_build_info(
+	      'horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, 'Scientific-Linux-7-2019b')
           selec = specific(buildNumber: build_num)
           // horace-euphonic-interface doesn't have any mex code, so using
           // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build

@@ -2,6 +2,7 @@
 
 from urllib.request import urlopen
 from argparse import ArgumentParser
+from typing import Optional
 import json
 import os
 
@@ -15,26 +16,25 @@ def main():
         help='Name of pace-neutrons repo to query')
     parser.add_argument('branch', type=str,
         help='Branch of repo to query')
-    parser.add_argument('--match-build', action='store_true',
-        help=('Matches the build given by the PLATFORM and '
-              'MATLAB_VERSION environment variables to the '
-              'status.context string'))
+    parser.add_argument('--match-context', type=str,
+        help=('If given looks for a substring match '
+              'in status.context, otherwise just uses '
+              'the first status'))
 
     args = parser.parse_args()
     job_name, build_num = get_build_info_from_status(
-        args.repo, args.branch, args.match_build)
+        args.repo, args.branch, args.match_context)
     print(f'{job_name} {build_num}')
 
 def get_build_info_from_status(repo: str, branch: str,
-                               match_build: bool = False):
+                               match_context: Optional[str] = None):
   """
   For a specific pace-neutrons Github repository and branch, query
   the latest commit status to get the latest build URL, and extract
   the build number.
 
-  If match_build, then uses the PLATFORM and MATLAB_VERSION environment
-  variables to look at statuses.context to get the correct build type.
-  Otherwise just uses the first status.
+  If match_context, looks at statuses.context for a matching substring
+  to get the correct build type. Otherwise just uses the first status.
   """
   status_url = (f'https://api.github.com/repos/pace-neutrons/'
                 f'{repo}/commits/{branch}/status')
@@ -44,17 +44,14 @@ def get_build_info_from_status(repo: str, branch: str,
   response_json = json.loads(content)
 
   status_idx = -1
-  if match_build:
-      platform = os.environ['PLATFORM']
-      matlab_ver = os.environ['MATLAB_VERSION']
-      match_build_str = platform + '-' + matlab_ver 
+  if match_context is not None:
       for i, status in enumerate(response_json['statuses']):
-          if match_build_str in status['context']:
+          if match_context in status['context']:
               status_idx = i
               break
       if status_idx == -1:
           raise RuntimeError(
-              (f"Couldn't find build {match_build_str} in "
+              (f"Couldn't find context {match_context} in "
                f"statuses.context at {status_url}"))
   else:
       status_idx = 0
