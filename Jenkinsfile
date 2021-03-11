@@ -1,5 +1,4 @@
 #!groovy
-import groovy.json.JsonSlurper
 
 def is_master_build(String job_name) {
   // Master builds start with the platform, branch builds start with
@@ -40,40 +39,18 @@ def get_agent(String job_name) {
   }
 }
 
-def http_request_get(String url) {
-  def response
-  if (isUnix()) {
-    response = sh(
-      script: "echo \$(curl --request GET ${url})",
-      returnStdout: true
-    )
-  } else {
-    response = powershell(
-      script: """
-        [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
-        Invoke-RestMethod -URI ${url} -Method 'GET' | ConvertTo-Json
-      """,
-      returnStdout: true
-    )
-  }
-  return json_string_to_map(response)
-}
-
-@NonCPS
-def json_string_to_map(String json_string) {
-  def lazy_map = new JsonSlurper().parseText(json_string)
-  // JsonSlurper returns a non-serializable LazyMap, so convert to regular map
-  def m = [:]
-  m.putAll(lazy_map)
-  return m
-}
-
 properties([
   parameters([
     string(
       defaultValue: get_matlab_version(env.JOB_BASE_NAME),
       description: 'The version of Matlab to use e.g. 2019b.',
       name: 'MATLAB_VERSION',
+      trim: true
+    ),
+    string(
+      defaultValue: get_platform(env.JOB_BASE_NAME),
+      description: 'The human-readable platform to execute the pipeline on.',
+      name: 'PLATFORM',
       trim: true
     ),
     string(
@@ -118,6 +95,20 @@ pipeline {
   }
 
   stages {
+    stage("Get-Build-Numbers") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh '''
+              module load conda/3 &&
+              python get_latest_build_numbers.py
+            '''
+          } else {
+            bat 'python get_latest_build_numbers.py'
+          }
+        }
+      }
+    }
     stage("Get-Horace") {
       steps {
         script {
@@ -125,25 +116,15 @@ pipeline {
           def selec
           if (is_master_build(env.JOB_BASE_NAME) || env.HORACE_BRANCH == 'master') {
             selec = lastSuccessful()
-            project_name = project_name + get_platform(env.JOB_BASE_NAME) + '-' + get_matlab_version(env.JOB_BASE_NAME)
+            project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
           } else {
-            def response = http_request_get(
-              'https://api.github.com/repos/pace-neutrons/Horace/commits/' + env.HORACE_BRANCH + '/status')
-            def build_url = ''
-            for (status in response.statuses) {
-              if (get_platform(status.context) == get_platform(env.JOB_BASE_NAME) && get_matlab_version(status.context) == get_matlab_version(env.JOB_BASE_NAME)) {
-                build_url = status.target_url
-                build_number = build_url.tokenize('/')[-1]
-                break
-              }
-            }
-            selec = specific(buildNumber: build_number)
+            selec = specific(buildNumber: env.HORACE_BUILD_NUM)
             project_name = project_name + env.JOB_BASE_NAME
           }
           copyArtifacts(
             filter: 'build/Horace-*',
             fingerprintArtifacts: true,
-            projectName: "PACE-neutrons/Horace/${env.JOB_BASE_NAME}",
+            projectName: project_name,
             selector: selec
           )
           if (isUnix()) {
@@ -163,9 +144,6 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          def response = http_request_get(
-            'https://api.github.com/repos/pace-neutrons/horace-euphonic-interface/commits/' + env.HORACE_EUPHONIC_INTERFACE_BRANCH + '/status')
-          build_number = response.statuses[0].target_url.tokenize('/')[-1]
           // horace-euphonic-interface doesn't have any mex code, so using
           // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
           // on 2018b and statuses aren't reported for Windows builds
@@ -173,7 +151,7 @@ pipeline {
             filter: 'mltbx/*.mltbx',
             fingerprintArtifacts: true,
             projectName: 'PACE-neutrons/horace-euphonic-interface/Scientific-Linux-7-2019b',
-            selector: specific(buildNumber: build_number)
+            selector: specific(buildNumber: env.HORACE_EUPHONIC_INTERFACE_BUILD_NUM)
             )
         }
       }
