@@ -1,6 +1,21 @@
 from urllib.request import urlopen
+from argparse import ArgumentParser
 import json
 import os
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument('repo', type=str,
+        help='Name of pace-neutrons repo to query')
+    parser.add_argument('branch', type=str,
+        help='Branch of repo to query')
+    parser.add_argument('--match-build', action='store_true',
+        help=('Matches the build given by the PLATFORM and '
+              'MATLAB_VERSION environment variables to the '
+              'status.context string'))
+
+    args = parser.parse_args()
+    print(get_build_num(args.repo, args.branch, args.match_build))
 
 def get_build_num(repo: str, branch: str,
                   match_build: bool = False):
@@ -15,12 +30,10 @@ def get_build_num(repo: str, branch: str,
   """
   status_url = (f'https://api.github.com/repos/pace-neutrons/'
                 f'{repo}/commits/{branch}/status')
-  print(status_url)
 
   with urlopen(status_url) as response:
     content = response.read()
   response_json = json.loads(content)
-  print(response_json)
 
   status_idx = -1
   if match_build:
@@ -34,7 +47,7 @@ def get_build_num(repo: str, branch: str,
       if status_idx == -1:
           raise RuntimeError(
               (f"Couldn't find build {match_build_str} in "
-                "statuses.context at {status_url}"))
+               f"statuses.context at {status_url}"))
   else:
       status_idx = 0
 
@@ -42,13 +55,5 @@ def get_build_num(repo: str, branch: str,
   build_num = build_url.split('/')[-2]
   return build_num
 
-hor_eu_if_num = get_build_num(
-    'horace-euphonic-interface',
-    os.environ['HORACE_EUPHONIC_INTERFACE_BRANCH'])
-os.environ['HORACE_EUPHONIC_INTERFACE_BUILD_NUM'] = hor_eu_if_num
-
-horace_branch = os.environ['HORACE_BRANCH']
-if horace_branch != 'master':
-    horace_num = get_build_num(
-        'Horace', horace_branch, match_build=True)
-    os.environ['HORACE_BUILD_NUM'] = horace_num
+if __name__ == '__main__':
+    main()

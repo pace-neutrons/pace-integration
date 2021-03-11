@@ -95,20 +95,6 @@ pipeline {
   }
 
   stages {
-    stage("Get-Build-Numbers") {
-      steps {
-        script {
-          if (isUnix()) {
-            sh '''
-              module load conda/3 &&
-              python get_latest_build_numbers.py
-            '''
-          } else {
-            bat 'python get_latest_build_numbers.py'
-          }
-        }
-      }
-    }
     stage("Get-Horace") {
       steps {
         script {
@@ -118,6 +104,13 @@ pipeline {
             selec = lastSuccessful()
             project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
           } else {
+            def build_num
+            def script_cmd = "python get_build_number.py Horace ${env.HORACE_BRANCH} --match-build"
+            if (isUnix()) {
+              build_num = sh(script: script_cmd, returnStdout: true)
+            } else {
+              build_num = bat(script: script_cmd, returnStdout: true)
+            }
             selec = specific(buildNumber: env.HORACE_BUILD_NUM)
             project_name = project_name + env.JOB_BASE_NAME
           }
@@ -144,6 +137,13 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
+          def build_num
+          def script_cmd = "python get_build_number.py horace-euphonic-interface ${env.HORACE_EUPHONIC_INTERFACE_BRANCH}"
+          if (isUnix()) {
+            build_num = sh(script: script_cmd, returnStdout: true)
+          } else {
+            build_num = bat(script: script_cmd, returnStdout: true)
+          }
           // horace-euphonic-interface doesn't have any mex code, so using
           // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
           // on 2018b and statuses aren't reported for Windows builds
