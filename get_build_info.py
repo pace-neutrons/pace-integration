@@ -6,6 +6,10 @@ import json
 import os
 
 def main():
+    """
+    Given a pace-neutrons repository and branch,
+    prints the job name and build number
+    """
     parser = ArgumentParser()
     parser.add_argument('repo', type=str,
         help='Name of pace-neutrons repo to query')
@@ -17,10 +21,12 @@ def main():
               'status.context string'))
 
     args = parser.parse_args()
-    print(get_build_num(args.repo, args.branch, args.match_build))
+    job_name, build_num = get_build_info_from_status(
+        args.repo, args.branch, args.match_build)
+    print(f'{job_name} {build_num}')
 
-def get_build_num(repo: str, branch: str,
-                  match_build: bool = False):
+def get_build_info_from_status(repo: str, branch: str,
+                               match_build: bool = False):
   """
   For a specific pace-neutrons Github repository and branch, query
   the latest commit status to get the latest build URL, and extract
@@ -54,8 +60,9 @@ def get_build_num(repo: str, branch: str,
       status_idx = 0
 
   build_url = response_json['statuses'][status_idx]['target_url']
+  job_name = build_url.split('/')[-3]
   build_num = build_url.split('/')[-2]
-  return build_num
+  return job_name, build_num
 
 if __name__ == '__main__':
     main()

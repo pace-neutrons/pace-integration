@@ -39,6 +39,25 @@ def get_agent(String job_name) {
   }
 }
 
+def get_build_info(String repo, String branch, boolean match_build) {
+  def job_name
+  def build_num
+  def script_cmd = "python get_build_info.py ${repo} ${branch}"
+  if (match_build) {
+    script_cmd += " --match-build"
+  }
+  if (isUnix()) {
+    build_info = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
+  } else {
+    build_info = bat(script: script_cmd, returnStdout: true)
+  }
+  println build_info
+  // Index from the end to ignore any previous output
+  job_name = build_info.tokenize(' |\n')[-2].trim()
+  build_num = build_info.tokenize(' |\n')[-1].trim()
+  return [job_name, build_num]
+}
+
 properties([
   parameters([
     string(
@@ -104,15 +123,9 @@ pipeline {
             selec = lastSuccessful()
             project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
           } else {
-            def build_num
-            def script_cmd = "python get_build_number.py Horace ${env.HORACE_BRANCH} --match-build"
-            if (isUnix()) {
-              build_num = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
-            } else {
-              build_num = bat(script: script_cmd, returnStdout: true)
-            }
-            selec = specific(buildNumber: env.HORACE_BUILD_NUM)
-            project_name = project_name + env.JOB_BASE_NAME
+	    def (job_name, build_num) = get_build_info('Horace', env.HORACE_BRANCH, true)
+            selec = specific(buildNumber: build_num)
+            project_name = project_name + job_name
           }
           copyArtifacts(
             filter: 'build/Horace-*',
@@ -137,21 +150,16 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          def build_num
-          def script_cmd = "python get_build_number.py horace-euphonic-interface ${env.HORACE_EUPHONIC_INTERFACE_BRANCH}"
-          if (isUnix()) {
-            build_num = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
-          } else {
-            build_num = bat(script: script_cmd, returnStdout: true)
-          }
+	  def (job_name, build_num) = get_build_info('horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, false)
+          selec = specific(buildNumber: build_num)
           // horace-euphonic-interface doesn't have any mex code, so using
           // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
           // on 2018b and statuses aren't reported for Windows builds
           copyArtifacts(
             filter: 'mltbx/*.mltbx',
             fingerprintArtifacts: true,
-            projectName: 'PACE-neutrons/horace-euphonic-interface/Scientific-Linux-7-2019b',
-            selector: specific(buildNumber: env.HORACE_EUPHONIC_INTERFACE_BUILD_NUM)
+            projectName: 'PACE-neutrons/horace-euphonic-interface/' + job_name,
+            selector: specific(buildNumber: build_num)
             )
         }
       }
