@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 from urllib.request import urlopen
 from argparse import ArgumentParser
 import json

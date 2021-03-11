@@ -107,7 +107,7 @@ pipeline {
             def build_num
             def script_cmd = "python get_build_number.py Horace ${env.HORACE_BRANCH} --match-build"
             if (isUnix()) {
-              build_num = sh(script: script_cmd, returnStdout: true)
+              build_num = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
             } else {
               build_num = bat(script: script_cmd, returnStdout: true)
             }
@@ -140,7 +140,7 @@ pipeline {
           def build_num
           def script_cmd = "python get_build_number.py horace-euphonic-interface ${env.HORACE_EUPHONIC_INTERFACE_BRANCH}"
           if (isUnix()) {
-            build_num = sh(script: script_cmd, returnStdout: true)
+            build_num = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
           } else {
             build_num = bat(script: script_cmd, returnStdout: true)
           }
