@@ -193,7 +193,7 @@ pipeline {
       withCredentials([string(credentialsId: 'Euphonic_contact_email', variable: 'euphonic_email'),
                        string(credentialsId: 'Horace_contact_email', variable: 'horace_email')]){
         script {
-          if (isUnix()) {
+          if (false) {
             mail (
               to: "${euphonic_email},${horace_email}",
               subject: "PACE integration pipeline failed: ${env.JOB_BASE_NAME}",
