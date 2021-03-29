@@ -58,40 +58,48 @@ def get_build_info(String repo, String branch, String match_context) {
   return [job_name, build_num]
 }
 
+String get_param(String param_name, String default_val) {
+  // Return environment variable if present and non-empty
+  // Else return default
+  String value = "";
+  try {
+    value = env."${param_name}";
+  } catch (groovy.lang.MissingPropertyException _) { }
+  if (!value) {
+    value = default_val;
+  }
+  println "${param_name} = ${value}"
+  return value
+}
+
 properties([
   parameters([
     string(
-      defaultValue: get_matlab_version(env.JOB_BASE_NAME),
       description: 'The version of Matlab to use e.g. 2019b.',
       name: 'MATLAB_VERSION',
       trim: true
     ),
     string(
-      defaultValue: get_platform(env.JOB_BASE_NAME),
       description: 'The human-readable platform to execute the pipeline on.',
       name: 'PLATFORM',
       trim: true
     ),
     string(
-      defaultValue: get_agent(env.JOB_BASE_NAME),
       description: 'The agent to execute the pipeline on.',
       name: 'AGENT',
       trim: true
     ),
     string(
-      defaultValue: 'master',
       description: 'The branch of Horace to test against',
       name: 'HORACE_BRANCH',
       trim: true
     ),
     string(
-      defaultValue: 'master',
       description: 'The branch of Euphonic to test against',
       name: 'EUPHONIC_BRANCH',
       trim: true
     ),
     string(
-      defaultValue: 'master',
       description: 'The branch of horace-euphonic-interface to test against',
       name: 'HORACE_EUPHONIC_INTERFACE_BRANCH',
       trim: true
@@ -107,6 +115,12 @@ pipeline {
 
   environment {
     CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
+    MATLAB_VERSION = get_param('MATLAB_VERSION', get_matlab_version(env.JOB_BASE_NAME))
+    PLATFORM = get_param('PLATFORM', get_platform(env.JOB_BASE_NAME))
+    AGENT = get_param('AGENT', get_agent(env.JOB_BASE_NAME))
+    HORACE_BRANCH = get_param('HORACE_BRANCH', 'master')
+    EUPHONIC_BRANCH = get_param('EUPHONIC_BRANCH', 'master')
+    HORACE_EUPHONIC_INTERFACE_BRANCH = get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
   }
 
   triggers {
@@ -123,8 +137,8 @@ pipeline {
             selec = lastSuccessful()
             project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
           } else {
-	    def (job_name, build_num) = get_build_info(
-	        'Horace', env.HORACE_BRANCH, "${env.PLATFORM}-${env.MATLAB_VERSION}")
+            def (job_name, build_num) = get_build_info(
+              'Horace', env.HORACE_BRANCH, "${env.PLATFORM}-${env.MATLAB_VERSION}")
             selec = specific(buildNumber: build_num)
             project_name = project_name + job_name
           }
@@ -151,8 +165,8 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-	  def (job_name, build_num) = get_build_info(
-	      'horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, 'Scientific-Linux-7-2019b')
+          def (job_name, build_num) = get_build_info(
+            'horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, 'Scientific-Linux-7-2019b')
           selec = specific(buildNumber: build_num)
           // horace-euphonic-interface doesn't have any mex code, so using
           // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build

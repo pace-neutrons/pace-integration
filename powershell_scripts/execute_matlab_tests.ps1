@@ -2,6 +2,21 @@
   Write-And-Invoke, Get-From-Registry, Get-Conda-Env-Dir
 #>
 
+<#
+  .SYNOPSIS
+    Sets the PYTHON_EX_PATH environment variable, and executes a Matlab script to run integration tests
+  .DESCRIPTION
+    For a specific Conda environment (specified in the CONDA_ENV_DIR environment variable), determines
+    the Python executable location and uses it to set the PYTHON_EX_PATH environment variable. It then
+    uses the MATLAB_VERSION environment variable to find the Matlab executable path and runs the
+    'setup_and_run_tests' script to run the integration tests. In this script the PYTHON_EX_PATH environment
+    variable is used to activate Python from Matlab.
+  .NOTES
+    Required environment variables:
+      CONDA_ENV_DIR  - Name of the conda environment containing the Python executable e.g. py36_pace_integration_2019b
+      MATLAB_VERSION - Matlab version to use e.g. 2019b
+#>
+
 $ErrorActionPreference = 'Stop'
 
 $MATLAB_VERSION_MAP = @{

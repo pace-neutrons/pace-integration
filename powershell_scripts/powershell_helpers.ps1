@@ -82,7 +82,10 @@ function Get-Conda-Env-Dir () {
     Gets the path of the conda env used for Windows pace-integration tests
   .DESCRIPTION
     Uses `Get-From-Registry` to get the base dir, then appends the environment
-	name.  The CONDA_ENV_NAME environment variable must be set e.g. py36_pace_integration_2019b
+    name
+  .NOTES
+     Required environment variables:
+       CONDA_ENV_NAME - Name of the Conda environment e.g. py36_pace_integration_2019b
   .EXAMPLE
     $CONDA_ENV_DIR = Get-Conda-Env-Dir
 #>
