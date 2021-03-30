@@ -52,7 +52,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             ws = read_sqw('quartz/cut1d.sqw');
             
             % Set up simulation
-	    disp('Setting up CoherentCrystal...');
+            disp('Setting up CoherentCrystal...');
             intrinsic_fwhm = 0.1;
             scale_factor = 1e12;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
@@ -62,7 +62,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
                 'eta_scale', 0.75);
 
             % Run simulation with resolution convolution
-	    disp('Running disp2sqw_eval with resolution convolution');
+            disp('Running disp2sqw_eval with resolution convolution');
             is_crystal = true; xgeom = [0,0,1]; ygeom = [0,1,0]; shape = 'cuboid'; shape_pars = [0.01,0.05,0.01];
             ws = set_sample(ws, IX_sample(is_crystal, xgeom, ygeom, shape, shape_pars));
             ei = 40; freq = 400; chopper = 'g';
@@ -74,9 +74,6 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             disp('Reading expected sqw...');
             expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_tobyfit.sqw');
 
-            % Tobyfit results are non-deterministic and have high errors
-            % when running such a quick test case, allow generous relative
-            % errors
             disp('Testing result...');
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
