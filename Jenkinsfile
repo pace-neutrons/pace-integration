@@ -114,8 +114,8 @@ pipeline {
   }
 
   environment {
-    CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
     MATLAB_VERSION = get_param('MATLAB_VERSION', get_matlab_version(env.JOB_BASE_NAME))
+    CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
     PLATFORM = get_param('PLATFORM', get_platform(env.JOB_BASE_NAME))
     AGENT = get_param('AGENT', get_agent(env.JOB_BASE_NAME))
     HORACE_BRANCH = get_param('HORACE_BRANCH', 'master')
