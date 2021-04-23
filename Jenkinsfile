@@ -75,31 +75,37 @@ String get_param(String param_name, String default_val) {
 properties([
   parameters([
     string(
+      defaultValue: '',
       description: 'The version of Matlab to use e.g. 2019b.',
       name: 'MATLAB_VERSION',
       trim: true
     ),
     string(
+      defaultValue: '',
       description: 'The human-readable platform to execute the pipeline on.',
       name: 'PLATFORM',
       trim: true
     ),
     string(
+      defaultValue: '',
       description: 'The agent to execute the pipeline on.',
       name: 'AGENT',
       trim: true
     ),
     string(
+      defaultValue: '',
       description: 'The branch of Horace to test against',
       name: 'HORACE_BRANCH',
       trim: true
     ),
     string(
+      defaultValue: '',
       description: 'The branch of Euphonic to test against',
       name: 'EUPHONIC_BRANCH',
       trim: true
     ),
     string(
+      defaultValue: '',
       description: 'The branch of horace-euphonic-interface to test against',
       name: 'HORACE_EUPHONIC_INTERFACE_BRANCH',
       trim: true
