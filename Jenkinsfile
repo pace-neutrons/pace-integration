@@ -1,39 +1,22 @@
 #!groovy
 
-def is_master_build(String job_name) {
-  // Master builds start with the platform, branch builds start with
-  // 'Branch-' or 'PR-'
-  if (job_name.tokenize('-')[0] in ['Branch', 'PR']) {
-    return false
-  } else {
+@Library('PACE-shared-lib') import pace.common.PipeLineInfo
+
+pli = new PipeLineInfo(env.JOB_BASE_NAME)
+
+def is_master_build(String build_type) {
+  if (build_type == 'Nightly') {
     return true
-  }
-}
-
-def get_platform(String job_name) {
-  // Get name of the platform e.g. 'Scientific-Linux-7'
-  def idxi
-  if (is_master_build(job_name)) {
-    idxi = 0
   } else {
-    idxi = 1
+    return false
   }
-  return job_name.tokenize('-')[idxi..-2].join('-')
 }
 
-def get_matlab_version(String job_name) {
-  return job_name[-5..-1]
-}
-
-def get_agent(String job_name) {
-  if (get_platform(job_name) == 'Scientific-Linux-7') {
-    withCredentials([string(credentialsId: 'sl7_agent', variable: 'agent')]) {
-      return "${agent}"
-    }
-  } else if (get_platform(job_name) == 'Windows-10') {
-    withCredentials([string(credentialsId: 'win10_agent', variable: 'agent')]) {
-      return "${agent}"
-    }
+def get_readable_os(String os) {
+  if (os == 'sl7') {
+    return 'Scientific-Linux-7'
+  } else if (os == 'win10') {
+    return 'Windows-10'
   } else {
     return ''
   }
@@ -58,20 +41,6 @@ def get_build_info(String repo, String branch, String match_context) {
   return [job_name, build_num]
 }
 
-String get_param(String param_name, String default_val) {
-  // Return environment variable if present and non-empty
-  // Else return default
-  String value = "";
-  try {
-    value = env."${param_name}";
-  } catch (groovy.lang.MissingPropertyException _) { }
-  if (!value) {
-    value = default_val;
-  }
-  println "${param_name} = ${value}"
-  return value
-}
-
 properties([
   parameters([
     string(
@@ -81,13 +50,7 @@ properties([
       trim: true
     ),
     string(
-      defaultValue: '',
-      description: 'The human-readable platform to execute the pipeline on.',
-      name: 'PLATFORM',
-      trim: true
-    ),
-    string(
-      defaultValue: '',
+      defaultValue: utilities.get_agent(pli.os),
       description: 'The agent to execute the pipeline on.',
       name: 'AGENT',
       trim: true
@@ -120,17 +83,15 @@ pipeline {
   }
 
   environment {
-    MATLAB_VERSION = get_param('MATLAB_VERSION', get_matlab_version(env.JOB_BASE_NAME))
+    MATLAB_VERSION = utilities.get_param('MATLAB_VERSION', pli.matlab_release.replace('R', ''))
     CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
-    PLATFORM = get_param('PLATFORM', get_platform(env.JOB_BASE_NAME))
-    AGENT = get_param('AGENT', get_agent(env.JOB_BASE_NAME))
-    HORACE_BRANCH = get_param('HORACE_BRANCH', 'master')
-    EUPHONIC_BRANCH = get_param('EUPHONIC_BRANCH', 'master')
-    HORACE_EUPHONIC_INTERFACE_BRANCH = get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
+    HORACE_BRANCH = utilities.get_param('HORACE_BRANCH', 'master')
+    EUPHONIC_BRANCH = utilities.get_param('EUPHONIC_BRANCH', 'master')
+    HORACE_EUPHONIC_INTERFACE_BRANCH = utilities.get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
   }
 
   triggers {
-    cron(is_master_build(env.JOB_BASE_NAME) ? 'H 5 * * 2-6' : '')
+    cron(is_master_build(pli.build_type) ? 'H 5 * * 2-6' : '')
   }
 
   stages {
@@ -139,12 +100,12 @@ pipeline {
         script {
           def project_name = "PACE-neutrons/Horace/"
           def selec
-          if (is_master_build(env.JOB_BASE_NAME) || env.HORACE_BRANCH == 'master') {
+          if (is_master_build(pli.build_type) || env.HORACE_BRANCH == 'master') {
             selec = lastSuccessful()
-            project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
+            project_name = project_name + get_readable_os(pli.os) + "-${env.MATLAB_VERSION}"
           } else {
             def (job_name, build_num) = get_build_info(
-              'Horace', env.HORACE_BRANCH, "${env.PLATFORM}-${env.MATLAB_VERSION}")
+              'Horace', env.HORACE_BRANCH, get_readable_os(pli.os) + "-${env.MATLAB_VERSION}")
             selec = specific(buildNumber: build_num)
             project_name = project_name + job_name
           }
@@ -268,7 +229,7 @@ pipeline {
       withCredentials([string(credentialsId: 'Euphonic_contact_email', variable: 'euphonic_email'),
                        string(credentialsId: 'Horace_contact_email', variable: 'horace_email')]){
         script {
-          if (is_master_build(env.JOB_BASE_NAME)) {
+          if (is_master_build(pli.build_type)) {
             mail (
               to: "${euphonic_email},${horace_email}",
               subject: "PACE integration pipeline failed: ${env.JOB_BASE_NAME}",

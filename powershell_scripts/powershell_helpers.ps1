@@ -89,7 +89,7 @@ function Get-Conda-Env-Dir () {
   .EXAMPLE
     $CONDA_ENV_DIR = Get-Conda-Env-Dir
 #>
-    $conda_reg = Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Python\ContinuumAnalytics\Anaconda37-64\InstallPath"
+    $conda_reg = Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Python\ContinuumAnalytics\Anaconda39-64\InstallPath"
     $conda_dir = "$(($conda_reg).'(default)')\envs\$env:CONDA_ENV_NAME"
     return $conda_dir
 }
