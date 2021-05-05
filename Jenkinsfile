@@ -4,11 +4,21 @@
 
 pli = new PipeLineInfo(env.JOB_BASE_NAME)
 
-def is_master_build(String release_type) {
-  if (release_type == 'Nightly') {
+def is_master_build(String build_type) {
+  if (build_type == 'Nightly') {
     return true
   } else {
     return false
+  }
+}
+
+def get_readable_os(String os) {
+  if (os == 'sl7') {
+    return 'Scientific-Linux-7'
+  } else if (os == 'win10') {
+    return 'Windows-10'
+  } else {
+    return ''
   }
 }
 
@@ -81,7 +91,7 @@ pipeline {
   }
 
   triggers {
-    cron(is_master_build(pli.release_type) ? 'H 5 * * 2-6' : '')
+    cron(is_master_build(pli.build_type) ? 'H 5 * * 2-6' : '')
   }
 
   stages {
@@ -90,12 +100,12 @@ pipeline {
         script {
           def project_name = "PACE-neutrons/Horace/"
           def selec
-          if (is_master_build(pli.release_type) || env.HORACE_BRANCH == 'master') {
+          if (is_master_build(pli.build_type) || env.HORACE_BRANCH == 'master') {
             selec = lastSuccessful()
-            project_name = project_name + "${env.PLATFORM}-${env.MATLAB_VERSION}"
+            project_name = project_name + get_readable_os(pli.os) + "-${env.MATLAB_VERSION}"
           } else {
             def (job_name, build_num) = get_build_info(
-              'Horace', env.HORACE_BRANCH, "${env.PLATFORM}-${env.MATLAB_VERSION}")
+              'Horace', env.HORACE_BRANCH, get_readable_os(pli.os) + "-${env.MATLAB_VERSION}")
             selec = specific(buildNumber: build_num)
             project_name = project_name + job_name
           }
@@ -219,7 +229,7 @@ pipeline {
       withCredentials([string(credentialsId: 'Euphonic_contact_email', variable: 'euphonic_email'),
                        string(credentialsId: 'Horace_contact_email', variable: 'horace_email')]){
         script {
-          if (is_master_build(pli.release_type)) {
+          if (is_master_build(pli.build_type)) {
             mail (
               to: "${euphonic_email},${horace_email}",
               subject: "PACE integration pipeline failed: ${env.JOB_BASE_NAME}",
