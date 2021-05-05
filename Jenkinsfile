@@ -73,7 +73,7 @@ pipeline {
   }
 
   environment {
-    MATLAB_VERSION = utilities.get_param('MATLAB_VERSION', pli.matlab_release)
+    MATLAB_VERSION = utilities.get_param('MATLAB_VERSION', pli.matlab_release.replace('R', ''))
     CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
     HORACE_BRANCH = utilities.get_param('HORACE_BRANCH', 'master')
     EUPHONIC_BRANCH = utilities.get_param('EUPHONIC_BRANCH', 'master')
