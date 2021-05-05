@@ -81,13 +81,13 @@ properties([
       trim: true
     ),
     string(
-      defaultValue: '',
+      defaultValue:  get_platform(env.JOB_BASE_NAME),
       description: 'The human-readable platform to execute the pipeline on.',
       name: 'PLATFORM',
       trim: true
     ),
     string(
-      defaultValue: '',
+      defaultValue: get_agent(env.JOB_BASE_NAME),
       description: 'The agent to execute the pipeline on.',
       name: 'AGENT',
       trim: true
@@ -122,8 +122,6 @@ pipeline {
   environment {
     MATLAB_VERSION = get_param('MATLAB_VERSION', get_matlab_version(env.JOB_BASE_NAME))
     CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
-    PLATFORM = get_param('PLATFORM', get_platform(env.JOB_BASE_NAME))
-    AGENT = get_param('AGENT', get_agent(env.JOB_BASE_NAME))
     HORACE_BRANCH = get_param('HORACE_BRANCH', 'master')
     EUPHONIC_BRANCH = get_param('EUPHONIC_BRANCH', 'master')
     HORACE_EUPHONIC_INTERFACE_BRANCH = get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
