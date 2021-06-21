@@ -16,7 +16,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
 
             % Set up simulation
             disp('Setting up CoherentCrystal...');
-            scale_factor = 1e12;
+            scale_factor = 2e2;
             effective_fwhm = 1;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
             euobj = euphonic.CoherentCrystal( ...
@@ -54,7 +54,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             % Set up simulation
             disp('Setting up CoherentCrystal...');
             intrinsic_fwhm = 0.1;
-            scale_factor = 1e12;
+            scale_factor = 2e2;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
             euobj = euphonic.CoherentCrystal( ...
                 fc, 'debye_waller_grid', [6 6 6], 'temperature', 100, ...
