@@ -13,11 +13,11 @@ catch ME
   end
 end
 
-% Load Horace
-addpath(['Horace' filesep 'Herbert']);
-herbert_init;
-addpath(['Horace' filesep 'Horace']);
-horace_init;
+% Install and load Horace
+cd('Horace')
+horace_install
+cd('..')
+horace_on
 
 % Install Horace-Euphonic-Interface
 toolboxes = matlab.addons.toolbox.installedToolboxes;
