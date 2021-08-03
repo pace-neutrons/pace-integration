@@ -1,0 +1,128 @@
+#!groovy
+
+def get_os(String jobname) {
+  if (jobname.contains('Scientific-Linux-7')) {
+    return 'Scientific-Linux-7'
+  } else if (jobname.contains('Windows-10')) {
+    return 'Windows-10'
+  } else {
+    return ''
+  }
+}
+
+def get_matlab_ver(String jobname) {
+  return jobname[-5..-1]
+}
+
+def get_agent(String jobname) {
+  if (jobname.contains('Scientific-Linux-7')) {
+    withCredentials([string(credentialsId: 'sl7_agent', variable: 'agent')]) {
+      return "${agent}"
+    }
+  } else if (jobname.contains('Windows-10')) {
+    withCredentials([string(credentialsId: 'win10_agent', variable: 'agent')]) {
+      return "${agent}"
+    }
+  } else {
+    return ''
+  }
+}
+
+pipeline {
+
+  agent {
+    label get_agent(env.JOB_BASE_NAME)
+  }
+
+  environment {
+    MATLAB_VERSION = get_matlab_ver(env.JOB_BASE_NAME)
+  }
+
+  triggers {
+    cron('H 6 * * 2-6')
+  }
+
+  stages {
+    stage("Get-Horace") {
+      steps {
+        script {
+          copyArtifacts(
+            filter: 'build/Horace-*',
+            fingerprintArtifacts: true,
+            projectName: "PACE-neutrons/Horace/" + get_os(env.JOB_BASE_NAME) + "-${env.MATLAB_VERSION}",
+            selector: lastSuccessful()
+          )
+          if (isUnix()) {
+            sh '''
+              archive_name="\$(find -name Horace-*.tar.gz)"
+              mkdir Horace && tar --strip-components=1 -xf \$archive_name -C Horace
+            '''
+          }
+          else {
+            powershell './powershell_scripts/extract_horace_artifact.ps1'
+          }
+
+        }
+      }
+    }
+
+    stage("Get-SpinW") {
+      steps {
+        dir('spinw') {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: "refs/heads/main"]],
+            extensions: [[$class: 'WipeWorkspace']],
+            userRemoteConfigs: [[url: 'https://github.com/spinw/spinw4']]
+          ])
+        }
+      }
+    }
+
+    stage("Set-Up-Matlab-And-Run-Tests") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh '''
+              module load matlab/R\$MATLAB_VERSION &&
+              matlab -nosplash -nodesktop -batch "run('iron_spinwaves/run_spinw_horace_test.m')"
+            '''
+          }
+          else {
+            //def MATLAB_ROOT = powershell(script='./iron_spinwaves/run_matlab_test.ps1', returnStdout: true)
+            //println MATLAB_ROOT
+            //bat '''
+            //  \$MATLAB_ROOT/bin/matlab.exe -nosplash -nodesktop -batch "run('iron_spinwaves/run_spinw_horace_test.m')"
+            //'''
+            powershell './iron_spinwaves/run_matlab_test.ps1'
+            //bat '''
+            //    for /f "delims=" %%i in ('powershell iron_spinwaves/run_matlab_test.ps1') do set output=%%i
+            //    %output%\\bin\\matlab.exe -nosplash -nodesktop -batch "run('iron_spinwaves/run_spinw_horace_test.m')"
+            //'''
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    unsuccessful {
+      withCredentials([string(credentialsId: 'SpinW_contact_email', variable: 'spinw_email'),
+                       string(credentialsId: 'Horace_contact_email', variable: 'horace_email')]){
+        script {
+            mail (
+              //to: "${spinw_email},${horace_email}",
+              to: "${spinw_email}",
+              subject: "PACE integration pipeline failed: ${env.JOB_BASE_NAME}",
+              body: "See ${env.BUILD_URL}"
+            )
+        }
+      }
+    }
+
+    cleanup {
+      deleteDir()
+    }
+
+  }
+}
