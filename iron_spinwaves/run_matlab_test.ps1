@@ -12,7 +12,7 @@
       MATLAB_VERSION - Matlab version to use e.g. 2019b
 #>
 
-#$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 
 $MATLAB_VERSION_MAP = @{
   '2018a' = '9.4';
@@ -27,11 +27,4 @@ $MATLAB_VERSION_MAP = @{
 $MATLAB_REG = Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Mathworks\MATLAB\$($MATLAB_VERSION_MAP[$Env:MATLAB_VERSION])"
 $MATLAB_ROOT = ($MATLAB_REG).MATLABROOT
 
-#Write-Output "$MATLAB_ROOT"
-
-#try {
-#Write-Host ($MATLAB_REG).MATLABROOT
 . $MATLAB_ROOT/bin/matlab.exe -nosplash -nodesktop -batch "run('iron_spinwaves/run_spinw_horace_test.m')"
-#} catch {
-#Write-Output "Matlab Fail"
-#}

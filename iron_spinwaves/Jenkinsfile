@@ -89,16 +89,7 @@ pipeline {
             '''
           }
           else {
-            //def MATLAB_ROOT = powershell(script='./iron_spinwaves/run_matlab_test.ps1', returnStdout: true)
-            //println MATLAB_ROOT
-            //bat '''
-            //  \$MATLAB_ROOT/bin/matlab.exe -nosplash -nodesktop -batch "run('iron_spinwaves/run_spinw_horace_test.m')"
-            //'''
             powershell './iron_spinwaves/run_matlab_test.ps1'
-            //bat '''
-            //    for /f "delims=" %%i in ('powershell iron_spinwaves/run_matlab_test.ps1') do set output=%%i
-            //    %output%\\bin\\matlab.exe -nosplash -nodesktop -batch "run('iron_spinwaves/run_spinw_horace_test.m')"
-            //'''
           }
         }
       }
@@ -111,8 +102,7 @@ pipeline {
                        string(credentialsId: 'Horace_contact_email', variable: 'horace_email')]){
         script {
             mail (
-              //to: "${spinw_email},${horace_email}",
-              to: "${spinw_email}",
+              to: "${spinw_email},${horace_email}",
               subject: "PACE integration pipeline failed: ${env.JOB_BASE_NAME}",
               body: "See ${env.BUILD_URL}"
             )
