@@ -11,6 +11,10 @@
     uses the MATLAB_VERSION environment variable to find the Matlab executable path and runs the
     'setup_and_run_tests' script to run the integration tests. In this script the PYTHON_EX_PATH environment
     variable is used to activate Python from Matlab.
+  .PARAMETER command
+    The MATLAB command to execute
+  .EXAMPLE
+    execute_matlab_tests.ps1 "setup_and_run_tests"
   .NOTES
     Required environment variables:
       CONDA_ENV_DIR  - Name of the conda environment containing the Python executable e.g. py36_pace_integration_2019b
@@ -28,6 +32,8 @@ $MATLAB_VERSION_MAP = @{
   '2020b' = '9.9';
 }
 
+$matlab_command = $args[0]
+
 # Get path to Conda environment Python, and set as environment variable to
 # be accessed by the Matlab test script
 $CONDA_ENV_DIR = Get-Conda-Env-Dir
@@ -39,4 +45,4 @@ Write-And-Invoke "Set-Item -Path Env:PYTHON_EX_PATH -Value $PYTHON_EX_PATH"
 $MATLAB_REG = Get-From-Registry "HKEY_LOCAL_MACHINE\SOFTWARE\Mathworks\MATLAB\$($MATLAB_VERSION_MAP[$Env:MATLAB_VERSION])"
 $MATLAB_ROOT = ($MATLAB_REG).MATLABROOT
 
-. $MATLAB_ROOT\bin\matlab.exe -nosplash -nodesktop -wait -batch "setup_and_run_tests"
+. $MATLAB_ROOT\bin\matlab.exe -nosplash -nodesktop -wait -batch $matlab_command

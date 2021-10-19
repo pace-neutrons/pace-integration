@@ -231,7 +231,7 @@ pipeline {
             '''
           }
           else {
-              powershell './powershell_scripts/execute_matlab_tests.ps1'
+              powershell './powershell_scripts/execute_matlab_tests.ps1 "setup_and_run_tests"'
           }
         }
       }
