@@ -43,6 +43,19 @@ pipeline {
   }
 
   stages {
+    stage("Get-PACE-jenkins-shared-library") {
+      steps {
+        dir('PACE-jenkins-shared-library') {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: "refs/heads/powershell_scripts"]],
+            extensions: [[$class: 'WipeWorkspace']],
+            userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/PACE-jenkins-shared-library.git']]
+          ])
+        }
+      }
+    }
+
     stage("Get-Horace") {
       steps {
         script {

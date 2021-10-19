@@ -1,4 +1,4 @@
-. $PSScriptRoot/../powershell_scripts/powershell_helpers.ps1 <# Imports:
+. $PSScriptRoot/../PACE-jenkins-shared-library/powershell_scripts/powershell_helpers.ps1 <# Imports:
   Get-From-Registry
 #>
 

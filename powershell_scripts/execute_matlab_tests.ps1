@@ -1,4 +1,4 @@
-. $PSScriptRoot/powershell_helpers.ps1 <# Imports:
+. $PSScriptRoot/../PACE-jenkins-shared-library/powershell_scripts/powershell_helpers.ps1 <# Imports:
   Write-And-Invoke, Get-From-Registry, Get-Conda-Env-Dir
 #>
 
