@@ -43,6 +43,19 @@ pipeline {
   }
 
   stages {
+    stage("Get-PACE-jenkins-shared-library") {
+      steps {
+        dir('PACE-jenkins-shared-library') {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: "refs/heads/main"]],
+            extensions: [[$class: 'WipeWorkspace']],
+            userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/PACE-jenkins-shared-library.git']]
+          ])
+        }
+      }
+    }
+
     stage("Get-Horace") {
       steps {
         script {
@@ -89,7 +102,7 @@ pipeline {
             '''
           }
           else {
-            powershell './iron_spinwaves/run_matlab_test.ps1'
+            powershell './PACE-jenkins-shared-library/powershell_scripts/execute_matlab_command.ps1 "run(\'iron_spinwaves/run_spinw_horace_test.m\')"'
           }
         }
       }

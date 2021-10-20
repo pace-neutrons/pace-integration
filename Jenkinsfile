@@ -95,6 +95,19 @@ pipeline {
   }
 
   stages {
+    stage("Get-PACE-jenkins-shared-library") {
+      steps {
+        dir('PACE-jenkins-shared-library') {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: "refs/heads/main"]],
+            extensions: [[$class: 'WipeWorkspace']],
+            userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/PACE-jenkins-shared-library.git']]
+          ])
+        }
+      }
+    }
+
     stage("Get-Horace") {
       steps {
         script {
@@ -171,7 +184,7 @@ pipeline {
             '''
           }
           else {
-            powershell './powershell_scripts/create_conda_environment.ps1'
+            powershell './PACE-jenkins-shared-library/powershell_scripts/create_conda_environment.ps1'
             }
           }
       }
@@ -218,7 +231,7 @@ pipeline {
             '''
           }
           else {
-              powershell './powershell_scripts/execute_matlab_tests.ps1'
+              powershell './PACE-jenkins-shared-library/powershell_scripts/execute_matlab_command.ps1 "setup_and_run_tests"'
           }
         }
       }
