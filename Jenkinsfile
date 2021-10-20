@@ -231,7 +231,7 @@ pipeline {
             '''
           }
           else {
-              powershell './powershell_scripts/execute_matlab_tests.ps1 "setup_and_run_tests"'
+              powershell './PACE-jenkins-shared-library/powershell_scripts/execute_matlab_command.ps1 "setup_and_run_tests"'
           }
         }
       }
