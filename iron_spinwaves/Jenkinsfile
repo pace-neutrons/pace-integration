@@ -102,7 +102,7 @@ pipeline {
             '''
           }
           else {
-            powershell './iron_spinwaves/run_matlab_test.ps1'
+            powershell './PACE-jenkins-shared-library/powershell_scripts/execute_matlab_command.ps1 "run(\'iron_spinwaves/run_spinw_horace_test.m\')"'
           }
         }
       }
