@@ -64,7 +64,10 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             % Run simulation with resolution convolution
             disp('Running disp2sqw_eval with resolution convolution');
             is_crystal = true; xgeom = [0,0,1]; ygeom = [0,1,0]; shape = 'cuboid'; shape_pars = [0.01,0.05,0.01];
-            ws = set_sample(ws, IX_sample(is_crystal, xgeom, ygeom, shape, shape_pars));
+            sample = IX_sample(is_crystal, xgeom, ygeom, shape, shape_pars);
+            sample.alatt = [4.9, 4.9, 5.4];
+            sample.angdeg = [90, 90, 120];
+            ws = set_sample(ws, sample);
             ei = 40; freq = 400; chopper = 'g';
             ws = set_instrument(ws, merlin_instrument(ei, freq, chopper));
             kk = tobyfit(ws);
@@ -78,7 +81,7 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
             import matlab.unittest.constraints.RelativeTolerance
-            bounds = AbsoluteTolerance(1e-10*mean(expected_wsim.data.s)) | RelativeTolerance(1e-5);
+            bounds = AbsoluteTolerance(1e-10*mean(expected_wsim.data.s)) | RelativeTolerance(5e-5);
             testCase.verifyThat(wsim.data.s, ...
                 IsEqualTo(expected_wsim.data.s, 'within', bounds));
         end
