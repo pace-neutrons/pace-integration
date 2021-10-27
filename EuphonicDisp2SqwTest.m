@@ -1,4 +1,15 @@
 classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
+    properties(TestParameter)
+        % pars, intensity_scale, expected_output_filename
+        scale_pars = {...
+            {150., 150., 'expected_cut1d_disp2sqw_eval.sqw'}, ...
+            {[120., 0.9], 120., 'expected_cut1d_disp2sqw_eval_fscale0p9.sqw'}, ...
+            {{'frequency_scale', 0.9, 'intensity_scale', 2.5e3}, 2.5e3, 'expected_cut1d_disp2sqw_eval_fscale0p9.sqw'}};
+        fitting_scale_pars = {...
+            {200., 200, 'expected_cut1d_disp2sqw_tobyfit.sqw'}, ...
+            {[1e3, 0.9], 1e3, 'expected_cut1d_disp2sqw_tobyfit_fscale0p9.sqw'}};
+    end
+
 
     methods(TestClassSetup)
         function setLinuxLibFlags(testCase)
@@ -8,40 +19,42 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
         end
     end
 
-    methods(Test)
-        function testQuartzCoherentCrystalDisp2sqweval(testCase)
+     methods(Test)
+        function testQuartzCoherentCrystalDisp2sqweval(testCase, scale_pars)
+            [pars, iscale, expected_out_fname] = scale_pars{:};
             disp('Running testQuartzCoherentCrystalDisp2sqweval...');
             disp('Reading sqw...');
             ws = read_sqw('quartz/cut1d.sqw')
 
             % Set up simulation
             disp('Setting up CoherentCrystal...');
-            scale_factor = 2e2;
             effective_fwhm = 1;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
             euobj = euphonic.CoherentCrystal( ...
                 fc, 'debye_waller_grid', [6 6 6], 'temperature', 100, ...
-                'negative_e', true, 'asr', true, 'chunk', 1000, 'use_c', true, ...
+                'negative_e', true, 'chunk', 1000, 'use_c', true, ...
                 'dipole_parameter', 0.75);
 
             % Run simulation
             disp('Running disp2sqw_eval');
-            wsim = disp2sqw_eval(ws, @euobj.horace_disp, {scale_factor}, effective_fwhm);
+            wsim = disp2sqw_eval(ws, @euobj.horace_disp, pars, effective_fwhm);
 
             disp('Reading expected sqw...');
-            expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_eval.sqw');
+            expected_wsim = read_sqw(['quartz', filesep, expected_out_fname]);
 
             disp('Testing result...');
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
             import matlab.unittest.constraints.RelativeTolerance
-            bounds = AbsoluteTolerance(1e-5*mean(expected_wsim.data.s)) | RelativeTolerance(1e-5);
+            bounds = AbsoluteTolerance(1e-7*iscale*mean(expected_wsim.data.s)) | RelativeTolerance(1e-5);
+
             testCase.verifyThat(wsim.data.s, ...
-                IsEqualTo(expected_wsim.data.s, 'within', bounds));
+                IsEqualTo(iscale*expected_wsim.data.s, 'within', bounds));
 
         end
 
-        function testQuartzCoherentCrystalDisp2sqwTobyfit(testCase)
+        function testQuartzCoherentCrystalDisp2sqwTobyfit(testCase, fitting_scale_pars)
+            [pars, iscale, expected_out_fname] = fitting_scale_pars{:};
             FIXED_SEED = 101;
             [rng_state, old_rng_state] = seed_rng(FIXED_SEED);
             clean_up = onCleanup(@() rng(old_rng_state));
@@ -54,11 +67,10 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             % Set up simulation
             disp('Setting up CoherentCrystal...');
             intrinsic_fwhm = 0.1;
-            scale_factor = 2e2;
             fc = euphonic.ForceConstants.from_castep('quartz/quartz.castep_bin');
             euobj = euphonic.CoherentCrystal( ...
                 fc, 'debye_waller_grid', [6 6 6], 'temperature', 100, ...
-                'negative_e', true, 'asr', true, 'chunk', 10000, 'use_c', true, ...
+                'negative_e', true, 'chunk', 10000, 'use_c', true, ...
                 'dipole_parameter', 0.75);
 
             % Run simulation with resolution convolution
@@ -71,19 +83,20 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             ei = 40; freq = 400; chopper = 'g';
             ws = set_instrument(ws, merlin_instrument(ei, freq, chopper));
             kk = tobyfit(ws);
-            kk = kk.set_fun(@disp2sqw, {@euobj.horace_disp, {scale_factor}, [intrinsic_fwhm]});
+            kk = kk.set_fun(@disp2sqw, {@euobj.horace_disp, pars, [intrinsic_fwhm]});
+            kk = kk.set_mc_points(3);
             wsim = kk.simulate('fore');
 
             disp('Reading expected sqw...');
-            expected_wsim = read_sqw('quartz/expected_cut1d_disp2sqw_tobyfit.sqw');
+            expected_wsim = read_sqw(['quartz', filesep, expected_out_fname]);
 
             disp('Testing result...');
             import matlab.unittest.constraints.IsEqualTo
             import matlab.unittest.constraints.AbsoluteTolerance
             import matlab.unittest.constraints.RelativeTolerance
-            bounds = AbsoluteTolerance(1e-10*mean(expected_wsim.data.s)) | RelativeTolerance(5e-5);
+            bounds = AbsoluteTolerance(1e-7*iscale*mean(expected_wsim.data.s)) | RelativeTolerance(2e-4);
             testCase.verifyThat(wsim.data.s, ...
-                IsEqualTo(expected_wsim.data.s, 'within', bounds));
+                IsEqualTo(iscale*expected_wsim.data.s, 'within', bounds));
         end
     end
 end
