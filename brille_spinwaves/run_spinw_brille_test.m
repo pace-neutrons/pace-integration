@@ -25,6 +25,7 @@ addpath(genpath(fullfile(parent_dir, 'spinw')));
 cd(parent_dir);
 addpath('brille_spinwaves');
 
+% Get and install the brillem toolbox
 toolboxes = matlab.addons.toolbox.installedToolboxes;
 for i = 1:length(toolboxes)
     if strcmp(toolboxes(i).Name, 'brillem')
@@ -32,6 +33,13 @@ for i = 1:length(toolboxes)
         break;
     end
 end
+import matlab.net.http.*
+request = RequestMessage(RequestMethod.GET);
+response = request.send('http://api.github.com/repos/brille/brillem/releases');
+opts = weboptions('HeaderFields', {'Accept', 'application/octet-stream'}, ...
+                  'CertificateFilename', '');
+% Newest release is first
+websave('brillem.mltbx', response.Body.Data(1).assets.url, opts);
 matlab.addons.toolbox.installToolbox('brillem.mltbx');
 matlab.addons.toolbox.installedToolboxes
 
@@ -71,6 +79,7 @@ tbrille = toc;
 fprintf('Time to run SpinW with Brille = %0.2f s\n', tbrille)
 fprintf('Speed up factor = %0.4f\n', tsim/tbrille)
 
+% Calculate fractional mean average error
 err = sum(sum(abs(wsim.data.s - wbrille.data.s))) / numel(wsim.data.s) / mean(wsim.data.s(:));
 fprintf('Relative per bin error in calculation = %0.2f %%\n', err*100)
 % 0.3169 % frac=1e-6
@@ -79,7 +88,9 @@ fprintf('Relative per bin error in calculation = %0.2f %%\n', err*100)
 % 0.8397 % frac=1e-6
 % 1.4911 % frac=1e-5
 
-if (err > 1)
+if (err > 0.5) % Fail if error larger than 50% - (was 32% when written)
+    % If the error goes up, sign that some changes to one of
+    % Brille / SpinW / Horace has gone wrong, and should be flagged.
     disp('FAILURE: relative error too large');
     quit(1)
 end
