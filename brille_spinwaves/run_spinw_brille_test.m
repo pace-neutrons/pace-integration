@@ -33,13 +33,14 @@ for i = 1:length(toolboxes)
         break;
     end
 end
-import matlab.net.http.*
-request = RequestMessage(RequestMethod.GET);
-response = request.send('http://api.github.com/repos/brille/brillem/releases');
-opts = weboptions('HeaderFields', {'Accept', 'application/octet-stream'}, ...
-                  'CertificateFilename', '');
-% Newest release is first
-websave('brillem.mltbx', response.Body.Data(1).assets.url, opts);
+% Going back to using Python because matlab is shoddy:
+% https://www.mathworks.com/matlabcentral/answers/443968-unix-curl-with-https-fails-with-error-77-workarounds
+%import matlab.net.http.*
+%request = RequestMessage(RequestMethod.GET);
+%response = request.send('http://api.github.com/repos/brille/brillem/releases');
+%opts = weboptions('HeaderFields', {'Accept', 'application/octet-stream'}, ...
+%                  'CertificateFilename', '');
+%websave('brillem.mltbx', response.Body.Data(1).assets.url, opts); % Newest release is first
 matlab.addons.toolbox.installToolbox('brillem.mltbx');
 matlab.addons.toolbox.installedToolboxes
 

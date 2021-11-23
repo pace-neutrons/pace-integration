@@ -101,7 +101,8 @@ pipeline {
               module load conda/3 &&
               conda create --name \$CONDA_ENV_NAME python=3.6 -y &&
               conda activate \$CONDA_ENV_NAME &&
-              python -m pip install brille numpy requests
+              python -m pip install brille numpy requests &&
+              python brille_spinwaves/get_brille_toolbox.py
             '''
           }
           else {
@@ -110,6 +111,7 @@ pipeline {
               CALL "%VS2019_VCVARSALL%" x86_amd64
               CALL conda activate %CONDA_ENV_NAME%
               python -m pip install brille numpy requests
+              python brille_spinwaves/get_brille_toolbox.py
             """
             }
           }
