@@ -1,12 +1,15 @@
 this_dir = fileparts(mfilename('fullpath'));
-parent_dir = split(this_dir, filesep);
-parent_dir = join(parent_dir(1:end-1), filesep);
-parent_dir = parent_dir{1};
-cd(fullfile(parent_dir, 'Horace'));
-horace_install;
-horace_on;
-addpath(genpath(fullfile(parent_dir, 'spinw')));
-cd(parent_dir);
+if isempty(which('herbert_init.m'))
+    parent_dir = split(this_dir, filesep);
+    parent_dir = join(parent_dir(1:end-1), filesep);
+    parent_dir = parent_dir{1};
+    cd(fullfile(parent_dir, 'Horace'));
+    cleanup = onCleanup(@()cd(parent_dir))
+    horace_install;
+    horace_on;
+    addpath(genpath(fullfile(parent_dir, 'spinw')));
+    clear('cleanup');
+end
 
 % Reads in the cut data
 w_fe = read_sqw(fullfile(this_dir, 'fe_cut.sqw'));
