@@ -41,6 +41,18 @@ def get_build_info(String repo, String branch, String match_context) {
   return [job_name, build_num]
 }
 
+def get_artifact_url(String branch) {
+  def artifact_url
+  def script_cmd = "python get_artifact_url.py ${branch}"
+  if (isUnix()) {
+    artifact_url = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
+  } else {
+    artifact_url = bat(script: script_cmd, returnStdout: true)
+  }
+  println artifact_url
+  return artifact_url
+}
+
 properties([
   parameters([
     string(
@@ -145,18 +157,10 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          def (job_name, build_num) = get_build_info(
-            'horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, 'Scientific-Linux-7-2019b')
-          selec = specific(buildNumber: build_num)
-          // horace-euphonic-interface doesn't have any mex code, so using
-          // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
-          // on 2018b and statuses aren't reported for Windows builds
-          copyArtifacts(
-            filter: 'mltbx/*.mltbx',
-            fingerprintArtifacts: true,
-            projectName: 'PACE-neutrons/horace-euphonic-interface/' + job_name,
-            selector: specific(buildNumber: build_num)
-            )
+          def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH)
+          httpRequest httpMode: 'GET',
+                      url: '${artifact_url}',
+                      authenticatrion: 'GitHub_API_Token'
         }
       }
     }
