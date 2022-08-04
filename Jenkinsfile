@@ -96,7 +96,7 @@ pipeline {
 
   environment {
     MATLAB_VERSION = utilities.get_param('MATLAB_VERSION', pli.matlab_release.replace('R', ''))
-    CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
+    CONDA_ENV_NAME = "py37_pace_integration_${env.MATLAB_VERSION}"
     HORACE_BRANCH = utilities.get_param('HORACE_BRANCH', 'master')
     EUPHONIC_BRANCH = utilities.get_param('EUPHONIC_BRANCH', 'master')
     HORACE_EUPHONIC_INTERFACE_BRANCH = utilities.get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
@@ -201,7 +201,7 @@ pipeline {
           if (isUnix()) {
             sh '''
               module load conda/3 &&
-              conda create --name \$CONDA_ENV_NAME python=3.6 -y
+              conda create --name \$CONDA_ENV_NAME python=3.7 -y
             '''
           }
           else {
