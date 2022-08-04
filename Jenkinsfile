@@ -97,6 +97,7 @@ pipeline {
   environment {
     MATLAB_VERSION = utilities.get_param('MATLAB_VERSION', pli.matlab_release.replace('R', ''))
     CONDA_ENV_NAME = "py37_pace_integration_${env.MATLAB_VERSION}"
+    CONDA_PY_VERSION = "3.7"
     HORACE_BRANCH = utilities.get_param('HORACE_BRANCH', 'master')
     EUPHONIC_BRANCH = utilities.get_param('EUPHONIC_BRANCH', 'master')
     HORACE_EUPHONIC_INTERFACE_BRANCH = utilities.get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
@@ -112,7 +113,7 @@ pipeline {
         dir('PACE-jenkins-shared-library') {
           checkout([
             $class: 'GitSCM',
-            branches: [[name: "refs/heads/main"]],
+            branches: [[name: "refs/heads/py_version_env"]],
             extensions: [[$class: 'WipeWorkspace']],
             userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/PACE-jenkins-shared-library.git']]
           ])
@@ -199,10 +200,10 @@ pipeline {
       steps {
         script {
           if (isUnix()) {
-            sh '''
+            sh """
               module load conda/3 &&
-              conda create --name \$CONDA_ENV_NAME python=3.7 -y
-            '''
+              conda create --name \$CONDA_ENV_NAME python=\$CONDA_PY_VERSION -y
+            """
           }
           else {
             powershell './PACE-jenkins-shared-library/powershell_scripts/create_conda_environment.ps1'
