@@ -50,7 +50,7 @@ def get_artifact_url(String branch) {
     artifact_url = bat(script: script_cmd, returnStdout: true)
   }
   println artifact_url
-  return artifact_url
+  return artifact_url.tokenize(' |\n')[-1].trim()
 }
 
 properties([
@@ -157,17 +157,26 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH)
-          def response = httpRequest httpMode: 'GET',
-                                     url: '${artifact_url}',
-                                     authentication: 'GitHub_API_Token',
-                                     outputFile: 'out.zip'
-          println("Status: " + response.status)
-          if (isUnix()) {
-            sh 'unzip out.zip'
-          }
-          else {
-            powershell './powershell_scripts/extract_artifact.ps1 "out.zip" "horace_euphonic_interface.mltbx"'
+          withCredentials([string(credentialsId: 'GitHub_API_Token',
+                                  variable: 'api_token')]) {
+            def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH)
+            if (isUnix()) {
+              sh """
+                curl -LO -H "Authorization: token ${api_token}" --request GET ${artifact_url}
+                unzip zip
+              """
+            }
+            else {
+              powershell """
+                [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+                Invoke-RestMethod -Uri ${artifact_url} \
+                                  -Headers @{Authorization = "token ${api_token}"} \
+                                  -Method 'GET' \
+                                  -ContentType 'application/zip' \
+                                  -OutFile 'horace_euphonic_interface.mltbx.zip'
+                ./powershell_scripts/extract_artifact.ps1 "horace_euphonic_interface.mltbx.zip" "horace_euphonic_interface.mltbx"
+              """
+            }
           }
         }
       }
