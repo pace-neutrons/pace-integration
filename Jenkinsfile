@@ -147,7 +147,7 @@ pipeline {
             '''
           }
           else {
-            powershell './powershell_scripts/extract_horace_artifact.ps1'
+            powershell './powershell_scripts/extract_artifact.ps1 "build/Horace-*.zip" "Horace"'
           }
 
         }
@@ -158,9 +158,17 @@ pipeline {
       steps {
         script {
           def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH)
-          httpRequest httpMode: 'GET',
-                      url: '${artifact_url}',
-                      authenticatrion: 'GitHub_API_Token'
+          def response = httpRequest httpMode: 'GET',
+                                     url: '${artifact_url}',
+                                     authentication: 'GitHub_API_Token',
+                                     outputFile: 'out.zip'
+          println("Status: " + response.status)
+          if (isUnix()) {
+            sh 'unzip out.zip'
+          }
+          else {
+            powershell './powershell_scripts/extract_artifact.ps1 "out.zip" "horace_euphonic_interface.mltbx"'
+          }
         }
       }
     }

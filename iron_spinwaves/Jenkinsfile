@@ -72,7 +72,7 @@ pipeline {
             '''
           }
           else {
-            powershell './powershell_scripts/extract_horace_artifact.ps1'
+            powershell './powershell_scripts/extract_artifact.ps1 "build/Horace-*.zip" "Horace"'
           }
 
         }
