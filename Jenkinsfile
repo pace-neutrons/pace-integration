@@ -113,7 +113,7 @@ pipeline {
         dir('PACE-jenkins-shared-library') {
           checkout([
             $class: 'GitSCM',
-            branches: [[name: "refs/heads/py_version_env"]],
+            branches: [[name: "refs/heads/main"]],
             extensions: [[$class: 'WipeWorkspace']],
             userRemoteConfigs: [[url: 'https://github.com/pace-neutrons/PACE-jenkins-shared-library.git']]
           ])
