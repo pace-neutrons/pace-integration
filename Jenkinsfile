@@ -41,6 +41,18 @@ def get_build_info(String repo, String branch, String match_context) {
   return [job_name, build_num]
 }
 
+def get_artifact_url(String branch) {
+  def artifact_url
+  def script_cmd = "python get_artifact_url.py ${branch}"
+  if (isUnix()) {
+    artifact_url = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
+  } else {
+    artifact_url = bat(script: script_cmd, returnStdout: true)
+  }
+  println artifact_url
+  return artifact_url.tokenize(' |\n')[-1].trim()
+}
+
 properties([
   parameters([
     string(
@@ -84,7 +96,8 @@ pipeline {
 
   environment {
     MATLAB_VERSION = utilities.get_param('MATLAB_VERSION', pli.matlab_release.replace('R', ''))
-    CONDA_ENV_NAME = "py36_pace_integration_${env.MATLAB_VERSION}"
+    CONDA_ENV_NAME = "py37_pace_integration_${env.MATLAB_VERSION}"
+    CONDA_PY_VERSION = "3.7"
     HORACE_BRANCH = utilities.get_param('HORACE_BRANCH', 'master')
     EUPHONIC_BRANCH = utilities.get_param('EUPHONIC_BRANCH', 'master')
     HORACE_EUPHONIC_INTERFACE_BRANCH = utilities.get_param('HORACE_EUPHONIC_INTERFACE_BRANCH', 'master')
@@ -135,7 +148,7 @@ pipeline {
             '''
           }
           else {
-            powershell './powershell_scripts/extract_horace_artifact.ps1'
+            powershell './powershell_scripts/extract_artifact.ps1 "build/Horace-*.zip" "Horace"'
           }
 
         }
@@ -145,18 +158,27 @@ pipeline {
     stage("Get-Horace-Euphonic-Interface-Matlab") {
       steps {
         script {
-          def (job_name, build_num) = get_build_info(
-            'horace-euphonic-interface', env.HORACE_EUPHONIC_INTERFACE_BRANCH, 'Scientific-Linux-7-2019b')
-          selec = specific(buildNumber: build_num)
-          // horace-euphonic-interface doesn't have any mex code, so using
-          // Scientific-Linux-7-2019b should be ok. Currently the toolbox doesn't build
-          // on 2018b and statuses aren't reported for Windows builds
-          copyArtifacts(
-            filter: 'mltbx/*.mltbx',
-            fingerprintArtifacts: true,
-            projectName: 'PACE-neutrons/horace-euphonic-interface/' + job_name,
-            selector: specific(buildNumber: build_num)
-            )
+          withCredentials([string(credentialsId: 'GitHub_API_Token',
+                                  variable: 'api_token')]) {
+            def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH)
+            if (isUnix()) {
+              sh """
+                curl -LO -H "Authorization: token ${api_token}" --request GET ${artifact_url}
+                unzip zip
+              """
+            }
+            else {
+              powershell """
+                [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+                Invoke-RestMethod -Uri ${artifact_url} \
+                                  -Headers @{Authorization = "token ${api_token}"} \
+                                  -Method 'GET' \
+                                  -ContentType 'application/zip' \
+                                  -OutFile 'horace_euphonic_interface.mltbx.zip'
+                ./powershell_scripts/extract_artifact.ps1 "horace_euphonic_interface.mltbx.zip" "horace_euphonic_interface.mltbx"
+              """
+            }
+          }
         }
       }
     }
@@ -178,10 +200,10 @@ pipeline {
       steps {
         script {
           if (isUnix()) {
-            sh '''
+            sh """
               module load conda/3 &&
-              conda create --name \$CONDA_ENV_NAME python=3.6 -y
-            '''
+              conda create --name \$CONDA_ENV_NAME python=\$CONDA_PY_VERSION -y
+            """
           }
           else {
             powershell './PACE-jenkins-shared-library/powershell_scripts/create_conda_environment.ps1'
