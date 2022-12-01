@@ -215,6 +215,7 @@ pipeline {
     stage("Install-Euphonic") {
       steps {
         dir('Euphonic') {
+	  // Note psutil is euphonic_sqw_models dependency
           script {
             if (isUnix()) {
               sh '''
@@ -222,6 +223,7 @@ pipeline {
                 module load gcc &&
                 conda activate \$CONDA_ENV_NAME &&
                 python -mpip install --upgrade pip &&
+                python -mpip install psutil &&
                 python -mpip install numpy &&
                 python -mpip install .
               '''
@@ -231,6 +233,7 @@ pipeline {
                 CALL "%VS2019_VCVARSALL%" x86_amd64
                 CALL conda activate %CONDA_ENV_NAME%
                 python -mpip install --upgrade pip
+                python -mpip install psutil
                 python -mpip install numpy
                 python -mpip install .
               """
