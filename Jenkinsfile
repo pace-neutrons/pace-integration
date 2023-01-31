@@ -41,9 +41,9 @@ def get_build_info(String repo, String branch, String match_context) {
   return [job_name, build_num]
 }
 
-def get_artifact_url(String branch) {
+def get_artifact_url(String branch, String api_token) {
   def artifact_url
-  def script_cmd = "python get_artifact_url.py ${branch}"
+  def script_cmd = "python get_artifact_url.py ${branch} --api-token ${api_token}"
   if (isUnix()) {
     artifact_url = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
   } else {
@@ -160,7 +160,7 @@ pipeline {
         script {
           withCredentials([string(credentialsId: 'GitHub_API_Token',
                                   variable: 'api_token')]) {
-            def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH)
+            def artifact_url = get_artifact_url(env.HORACE_EUPHONIC_INTERFACE_BRANCH, api_token)
             if (isUnix()) {
               sh """
                 curl -LO -H "Authorization: token ${api_token}" --request GET ${artifact_url}

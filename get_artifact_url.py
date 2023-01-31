@@ -14,18 +14,24 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('branch', type=str,
         help='Branch of repo to query')
+    parser.add_argument('--api-token', type=str,
+        help='Github API token', default='')
 
     args = parser.parse_args()
-    url = get_artifact_url(branch=args.branch)
+    url = get_artifact_url(branch=args.branch, api_token=args.api_token)
     print(url)
 
-def get_response_json(url):
-    response = requests.get(url)
+def get_response_json(url, api_token=''):
+    if api_token:
+        response = requests.get(url, headers={'Authorization': 'token ' + api_token})
+    else:
+        response = requests.get(url)
     response.raise_for_status()
     return response.json()
 
 def get_artifact_url(repo: str = 'horace-euphonic-interface',
                      branch: str = 'master',
+                     api_token: str = '',
                      workflow_name: str = 'Horace-Euphonic-Interface Tests',
                      artifact_name: str = 'horace_euphonic_interface.mltbx'):
     """
@@ -37,7 +43,7 @@ def get_artifact_url(repo: str = 'horace-euphonic-interface',
 
     # Get workflow ID
     workflows_url = f'{base_url}/repos/pace-neutrons/{repo}/actions/workflows'
-    content = get_response_json(workflows_url)
+    content = get_response_json(workflows_url, api_token)
     workflow_id = None
     for workflow in content['workflows']:
         if workflow['name'] == workflow_name:
@@ -49,7 +55,7 @@ def get_artifact_url(repo: str = 'horace-euphonic-interface',
   
     # Get matching workflow run id
     workflow_runs_url = f'{workflows_url}/{workflow_id}/runs'
-    content = get_response_json(workflow_runs_url)
+    content = get_response_json(workflow_runs_url, api_token)
     workflow_run_id = None
     for workflow_run in content['workflow_runs']:
         if (workflow_run['status'] == 'completed' and
@@ -64,7 +70,7 @@ def get_artifact_url(repo: str = 'horace-euphonic-interface',
     # Get matching artifact
     artifacts_url = (f'{base_url}/repos/pace-neutrons/{repo}/actions/'
                     f'runs/{workflow_run_id}/artifacts')
-    content = get_response_json(artifacts_url)
+    content = get_response_json(artifacts_url, api_token)
     artifact_download_url = None
     for artifact in content['artifacts']:    
         if artifact['name'] == artifact_name:
