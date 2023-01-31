@@ -15,7 +15,7 @@ def is_master_build(String build_type) {
 def get_readable_os(String os) {
   if (os == 'sl7') {
     return 'Scientific-Linux-7'
-  } else if (os == 'win10') {
+  } else if (os == 'win10' || os == 'pacewin') {
     return 'Windows-10'
   } else {
     return ''
@@ -230,8 +230,13 @@ pipeline {
             }
             else {
               bat """
-                CALL "%VS2019_VCVARSALL%" x86_amd64
-                CALL conda activate %CONDA_ENV_NAME%
+                set
+                echo %cd%
+                cd "%VS140COMNTOOLS%"
+                dir /s vcvar*
+                CALL "%VS140COMNTOOLS%vcvarsall.bat" x86_amd64
+                CALL conda.bat activate %CONDA_ENV_NAME%
+                where python
                 python -mpip install --upgrade pip
                 python -mpip install psutil
                 python -mpip install numpy

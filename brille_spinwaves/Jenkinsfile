@@ -101,7 +101,7 @@ pipeline {
               module load conda/3 &&
               conda create --name \$CONDA_ENV_NAME -c conda-forge python=3.6 -y &&
               conda activate \$CONDA_ENV_NAME &&
-              conda install -c conda-forge numpy gcc
+              conda install -c conda-forge numpy gxx
               python -m pip install brille requests &&
               python brille_spinwaves/get_brille_toolbox.py
             '''
