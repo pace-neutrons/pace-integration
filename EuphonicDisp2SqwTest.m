@@ -54,6 +54,9 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
         end
 
         function testQuartzCoherentCrystalDisp2sqwTobyfit(testCase, fitting_scale_pars)
+            hc = hpc_config;
+            hc.parallel_multifit = true;
+            hc.parallel_workers_number = 1;
             [pars, iscale, expected_out_fname] = fitting_scale_pars{:};
             FIXED_SEED = 101;
             [rng_state, old_rng_state] = seed_rng(FIXED_SEED);
@@ -85,7 +88,8 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
             kk = tobyfit(ws);
             kk = kk.set_fun(@disp2sqw, {@euobj.horace_disp, pars, [intrinsic_fwhm]});
             kk = kk.set_mc_points(3);
-            wsim = kk.simulate('fore');
+            [wsim, fit_data] = kk.fit();
+            %wsim = kk.simulate('fore');
 
             disp('Reading expected sqw...');
             expected_wsim = read_sqw(['quartz', filesep, expected_out_fname]);
