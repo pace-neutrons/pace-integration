@@ -2,9 +2,8 @@
 
 from argparse import ArgumentParser
 from typing import Optional
-import requests
-import json
-import os
+
+from utils import get_response_json
 
 def main():
     """
@@ -18,11 +17,6 @@ def main():
     args = parser.parse_args()
     url = get_artifact_url(branch=args.branch)
     print(url)
-
-def get_response_json(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
 
 def get_artifact_url(repo: str = 'horace-euphonic-interface',
                      branch: str = 'master',

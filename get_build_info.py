@@ -1,10 +1,8 @@
 #! /usr/bin/env python3
 
-from urllib.request import urlopen
 from argparse import ArgumentParser
 from typing import Optional
-import json
-import os
+from utils import get_response_json
 
 def main():
     """
@@ -36,27 +34,39 @@ def get_build_info_from_status(repo: str, branch: str,
   If match_context, looks at statuses.context for a matching substring
   to get the correct build type. Otherwise just uses the first status.
   """
-  status_url = (f'https://api.github.com/repos/pace-neutrons/'
-                f'{repo}/commits/{branch}/status')
+  commits_url = (f'https://api.github.com/repos/pace-neutrons/'
+                 f'{repo}/commits?sha={branch}')
+  commits_json = get_response_json(commits_url)
 
-  with urlopen(status_url) as response:
-    content = response.read()
-  response_json = json.loads(content)
+  max_commits = 10  # Only search last 10 commits for a successful build
+  build_url = None
+  for i in range(max_commits):
+      commit_sha = commits_json[i]['sha']
+      status_url = (f'https://api.github.com/repos/pace-neutrons/'
+                    f'{repo}/commits/{commit_sha}/status')
+      print(f'Looking at {status_url}')
+      status_json = get_response_json(status_url)
 
-  status_idx = -1
-  if match_context is not None:
-      for i, status in enumerate(response_json['statuses']):
-          if match_context in status['context']:
-              status_idx = i
+      for status in status_json['statuses']:
+          if match_context is not None:
+              if match_context in status['context']:
+                  build_url = status['target_url']
+                  break
+          else:
+              build_url = status['target_url']
               break
-      if status_idx == -1:
-          raise RuntimeError(
-              (f"Couldn't find context {match_context} in "
-               f"statuses.context at {status_url}"))
-  else:
-      status_idx = 0
+      if build_url is not None:
+          break
 
-  build_url = response_json['statuses'][status_idx]['target_url']
+  if build_url is None:
+      if match_context:
+          match_str = f'matching {match_context} '
+      else:
+          match_str = ''
+      raise RuntimeError(
+          (f"Couldn't find build url {match_str}in "
+           f"statuses {commits_url}"))
+
   job_name = build_url.split('/')[-3]
   build_num = build_url.split('/')[-2]
   return job_name, build_num

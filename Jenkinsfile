@@ -29,10 +29,13 @@ def get_build_info(String repo, String branch, String match_context) {
   if (match_context) {
     script_cmd += " --match-context ${match_context}"
   }
-  if (isUnix()) {
-    build_info = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
-  } else {
-    build_info = bat(script: script_cmd, returnStdout: true)
+  withCredentials([string(credentialsId: 'GitHub_API_Token',
+                           variable: 'api_token')]) {
+    if (isUnix()) {
+      build_info = sh(script: "module load conda/3 && ${script_cmd}", returnStdout: true)
+    } else {
+      build_info = bat(script: script_cmd, returnStdout: true)
+    }
   }
   println build_info
   // Index from the end to ignore any previous output
