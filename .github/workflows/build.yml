@@ -1,0 +1,87 @@
+name: Pace-Integration Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        matlab_version: [R2020a, R2020b, R2021a, R2021b]
+        python_version: ["3.8"]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out pace-integration
+        uses: actions/checkout@v4
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{ matrix.matlab_version }}
+      # Cannot run matlab directly from the setup (gives license error) need to download a runner with the run-command actions
+      - name: Download Matlab command runner
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "ver"
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+            python-version: ${{ matrix.python_version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install psutil numpy brille requests wheel
+          git clone --depth 1 https://github.com/spinw/spinw
+          wget https://gist.github.com/mducle/9186d062b42f05507d831af3d6677a5d/raw/cd0b0d3ed059f4e13d0364e98312dcddc2690ced/run_gh_matlab.sh
+          chmod 755 run_gh_matlab.sh
+      - name: Build euphonic
+        run: |
+          #git clone --depth 1 https://github.com/pace-neutrons/euphonic euphonic.git
+          #cd euphonic.git
+          #python -m pip install .
+          #cd ..
+          python -m pip install euphonic==1.3.0
+          git clone --depth 1 https://github.com/pace-neutrons/horace-euphonic-interface 
+          cd horace-euphonic-interface
+          git submodule update --init euphonic_sqw_models
+          git submodule update --init light_python_wrapper
+          python create_mltbx.py
+          cd mltbx
+          ../../run_gh_matlab.sh create_mltbx
+          cp horace_euphonic_interface.mltbx ../../
+      - name: Build Horace-master
+        run: |
+          #git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
+          #cd horace.git
+          #./tools/build_config/build.sh -p
+          #mkdir -p build/Horace
+          #cd build/Horace
+          #find .. -maxdepth 1 -name "Horace*tar.gz" -exec tar zxf '{}' --strip-components=1 \;
+          #cd ../../../
+          #mv horace.git/build/Horace .
+          mkdir -p Horace
+          cd Horace
+          wget https://github.com/pace-neutrons/Horace/releases/download/v3.6.4/Horace-3.6.4-linux-R2020b.tar.gz
+          tar zxf Horace-3.6.4-linux-R2020b.tar.gz --strip-components=1
+      - name: Run spinw test
+        run: |
+          ./run_gh_matlab.sh "run('iron_spinwaves/run_spinw_horace_test.m')"
+      # Brille not integrated into SpinW properly yet - skip the test for now
+      #- name: Run brille test
+      #  run: |
+      #    python brille_spinwaves/get_brille_toolbox.py
+      #    export PYTHON_EX_PATH=`which python`
+      #    ./run_gh_matlab.sh "run('brille_spinwaves/run_spinw_brille_test.m')"
+      - name: Run euphonic test
+        run: |
+          export PYTHON_EX_PATH=`which python`
+          ./run_gh_matlab.sh setup_and_run_tests
+      #- name: Setup tmate
+      #  if: ${{ failure() }}
+      #  uses: mxschmitt/action-tmate@v3
+      #  if: always()
