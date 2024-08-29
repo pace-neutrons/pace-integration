@@ -73,6 +73,10 @@ classdef EuphonicDisp2SqwTest < matlab.mock.TestCase
                 'negative_e', true, 'chunk', 10000, 'use_c', true, ...
                 'dipole_parameter', 0.75);
 
+            % Resets the RNG - PR920 somehow reduced the number of rand
+            % calls before TobyFit was called putting the RNG out of sync
+            rand(1,20);
+
             % Run simulation with resolution convolution
             disp('Running disp2sqw_eval with resolution convolution');
             is_crystal = true; xgeom = [0,0,1]; ygeom = [0,1,0]; shape = 'cuboid'; shape_pars = [0.01,0.05,0.01];

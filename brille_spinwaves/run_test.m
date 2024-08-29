@@ -1,7 +1,8 @@
 %% Runs the actual test
-proj = projaxes([1, 0, 0], [0, 1, 0], 'type', 'rrr');
+proj = line_proj([1, 0, 0], [0, 1, 0], 'type', 'rrr');
 sqw_file = fullfile(fileparts(mfilename('fullpath')), 'pcsmo_cut1.sqw');
 w1 = cut_sqw(sqw_file, proj, [-1, 0.05, 1], [-1, 0.05, 1], [-10, 10], [10, 20]);
+w1 = mask_random_fraction_pixels(w1, 0.1);
 
 Jvec = [-11.39, 1.5, -1.35, 1.5, 0.88, 0.074];
 Jv = mat2cell(Jvec,1,ones(1,6)); [J1,J2,J3,J4,J5,J6] = Jv{:};
