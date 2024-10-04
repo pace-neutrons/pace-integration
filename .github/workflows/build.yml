@@ -16,6 +16,10 @@ on:
         type: string
         default: ""
         description: Set to non-empty if Jenkins job to send a completion notice
+      horace_commit:
+        type: string
+        default: ""
+        description: Set to non-empty if want to use a specific Horace SHA instead of master
 
 jobs:
   notify_pending:
@@ -76,8 +80,19 @@ jobs:
           cp horace_euphonic_interface.mltbx ../../
       - name: Build Horace-master
         run: |
-          git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
-          cd horace.git
+          if [[ "${{ github.event.inputs.horace_commit }}" == "" ]]
+          then
+            git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
+            cd horace.git
+          else
+            # Using sparse checkout for a specific SHA
+            mkdir horace.git
+            cd horace.git
+            git init
+            git remote add origin https://github.com/pace-neutrons/horace
+            git fetch origin ${{ inputs.horace_commit }}
+            git checkout FETCH_HEAD
+          fi
           ./tools/build_config/build.sh -p
           mkdir -p build/Horace
           cd build/Horace
