@@ -7,8 +7,29 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
   workflow_dispatch:
+    inputs:
+      jenkins_url:
+        type: string
+        default: ""
+        description: Set to non-empty if Jenkins job to send a completion notice
+      jenkins_id:
+        type: string
+        default: ""
+        description: Set to non-empty if Jenkins job to send a completion notice
 
 jobs:
+  notify_pending:
+    if: ${{ inputs.jenkins_url != '' && inputs.jenkins_id != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Jenkins pending
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.JENKINS_GH_TOKEN }}" \
+               --request POST \
+               --data '{"state": "pending", "description": "Integration Test Passed", \
+                 "target_url": "${{ inputs.jenkins_id }}", \
+                 "context": "PACE_integration"}' ${{ inputs.jenkins_url }}
+
   test:
     strategy:
       matrix:
@@ -80,3 +101,16 @@ jobs:
       #  if: ${{ failure() }}
       #  uses: mxschmitt/action-tmate@v3
       #  if: always()
+
+  notify_success:
+    if: ${{ inputs.jenkins_url != '' && inputs.jenkins_id != '' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Jenkins pending
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.JENKINS_GH_TOKEN }}" \
+               --request POST \
+               --data '{"state": "success", "description": "Integration Test Passed", \
+                 "target_url": "${{ inputs.jenkins_id }}", \
+                 "context": "PACE_integration"}' ${{ inputs.jenkins_url }}
