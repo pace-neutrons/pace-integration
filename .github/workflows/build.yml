@@ -7,8 +7,31 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
   workflow_dispatch:
+    inputs:
+      jenkins_url:
+        type: string
+        default: ""
+        description: jenkins_url (For use by Horace-Jenkins)
+      jenkins_id:
+        type: string
+        default: ""
+        description: jenkins_id (For use by Horace-Jenkins)
 
 jobs:
+  notify_pending:
+    if: ${{ inputs.jenkins_url != '' && inputs.jenkins_id != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Jenkins pending
+        run: |
+          export turl="https://github.com/pace-neutrons/pace-integration/actions/runs/${{ github.run_id }}"
+          curl -L -X POST \
+               -H "Authorization: Bearer ${{ secrets.JENKINS_GH_TOKEN }}" \
+               -H "Accept: application/vnd.github+json" \
+               -H "X-GitHub-Api-Version: 2022-11-28" \
+               -d '{"state": "pending", "description": "Running integration test", "target_url": "${{ env.turl }}", "context": "PACE_integration"}' \
+               ${{ inputs.jenkins_url }}
+
   test:
     strategy:
       matrix:
@@ -30,7 +53,7 @@ jobs:
         with:
           command: "ver"
       - name: Set up Python environment
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
             python-version: ${{ matrix.python_version }}
       - name: Install dependencies
@@ -55,8 +78,19 @@ jobs:
           cp horace_euphonic_interface.mltbx ../../
       - name: Build Horace-master
         run: |
-          git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
-          cd horace.git
+          if [[ "${{ inputs.jenkins_id }}" == "" ]]
+          then
+            git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
+            cd horace.git
+          else
+            # Using sparse checkout for a specific SHA
+            mkdir horace.git
+            cd horace.git
+            git init
+            git remote add origin https://github.com/pace-neutrons/horace
+            git fetch origin ${{ inputs.jenkins_id }}
+            git checkout FETCH_HEAD
+          fi
           ./tools/build_config/build.sh -p
           mkdir -p build/Horace
           cd build/Horace
@@ -80,3 +114,18 @@ jobs:
       #  if: ${{ failure() }}
       #  uses: mxschmitt/action-tmate@v3
       #  if: always()
+
+  notify_success:
+    if: ${{ inputs.jenkins_url != '' && inputs.jenkins_id != '' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Jenkins pending
+        run: |
+          export turl="https://github.com/pace-neutrons/pace-integration/actions/runs/${{ github.run_id }}"
+          curl -L -X POST \
+               -H "Authorization: Bearer ${{ secrets.JENKINS_GH_TOKEN }}" \
+               -H "Accept: application/vnd.github+json" \
+               -H "X-GitHub-Api-Version: 2022-11-28" \
+               -d '{"state": "success", "description": "Integration test passed", "target_url": "${{ env.turl }}", "context": "PACE_integration"}' \
+               ${{ inputs.jenkins_url }}
