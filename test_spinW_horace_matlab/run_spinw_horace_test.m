@@ -10,6 +10,7 @@ if isempty(which('herbert_init.m'))
     addpath(genpath(fullfile(parent_dir, 'spinw')));
     clear('cleanup');
 end
+%
 
 % Reads in the cut data
 w_fe = read_sqw(fullfile(this_dir, 'fe_cut.sqw'));

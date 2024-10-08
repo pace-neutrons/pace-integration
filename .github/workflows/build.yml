@@ -57,6 +57,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
           cd horace.git
+          export HORACE_PATH=$(pwd)
           ./tools/build_config/build.sh -p
           mkdir -p build/Horace
           cd build/Horace
@@ -65,7 +66,7 @@ jobs:
           mv horace.git/build/Horace .
       - name: Run spinw test
         run: |
-          ./run_gh_matlab.sh "run('iron_spinwaves/run_spinw_horace_test.m')"
+          ./run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
       # Brille not integrated into SpinW properly yet - skip the test for now
       #- name: Run brille test
       #  run: |
