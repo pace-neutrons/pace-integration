@@ -80,12 +80,12 @@ jobs:
         run: |
           if [[ "${{ inputs.jenkins_id }}" == "" ]]
           then
-            git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
-            cd horace.git
+            git clone --depth 1 https://github.com/pace-neutrons/horace horace_git
+            cd horace_git
           else
             # Using sparse checkout for a specific SHA
-            mkdir horace.git
-            cd horace.git
+            mkdir horace_git
+            cd horace_git
             git init
             git remote add origin https://github.com/pace-neutrons/horace
             git fetch origin ${{ inputs.jenkins_id }}
@@ -96,6 +96,7 @@ jobs:
       - name: Run spinw test
         run: |
           export HORACE_PATH=${{ env.HORACE_PATH }}
+          echo $HORACE_PATH
           ./run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
       # Brille not integrated into SpinW properly yet - skip the test for now
       #- name: Run brille test
