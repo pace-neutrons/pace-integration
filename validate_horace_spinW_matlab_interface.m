@@ -29,6 +29,8 @@ if isempty(which('horace_on'))
     cd(admin_path);
     horace_install('spinW_folder',spinw_path);
     cd(current_path);
+else
+    fprintf("**********   Horace installed")
 end
 
 if isempty(which('horace_init'))

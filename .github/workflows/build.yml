@@ -74,6 +74,7 @@ jobs:
           git submodule update --init light_python_wrapper
           python create_mltbx.py
           cd mltbx
+          echo "EUPHONIC_TOOLBOX=$(pwd)" >> $GITHUB_ENV
           ../../run_gh_matlab.sh create_mltbx
           cp horace_euphonic_interface.mltbx ../../
       - name: Build Horace-master
@@ -93,6 +94,7 @@ jobs:
           fi
           echo "HORACE_PATH=$(pwd)" >> $GITHUB_ENV
           ./tools/build_config/build.sh -b
+          cd ./../
       - name: Run spinw test
         run: |
           export HORACE_PATH=${{ env.HORACE_PATH }}
@@ -107,6 +109,7 @@ jobs:
         run: |
           export PYTHON_EX_PATH=`which python`
           export HORACE_PATH=${{ env.HORACE_PATH }}
+          export EUPHONIC_TOOLBOX=${{ env.EUPHONIC_TOOLBOX}}
           
           ./run_gh_matlab.sh setup_and_run_euphonic_tests
       #- name: Setup tmate
