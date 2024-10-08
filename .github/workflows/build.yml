@@ -97,11 +97,11 @@ jobs:
           cd build/Horace
           find .. -maxdepth 1 -name "Horace*tar.gz" -exec tar zxf '{}' --strip-components=1 \;
           cd ../../../
-          mv horace.git /build/Horace .
+          mv horace.git/build/Horace .
       - name: Run spinw test
         run: |
           export HORACE_PATH=${{ env.HORACE_PATH }}
-         ./run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
+          ./run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
       # Brille not integrated into SpinW properly yet - skip the test for now
       #- name: Run brille test
       #  run: |
