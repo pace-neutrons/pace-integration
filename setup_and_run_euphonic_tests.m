@@ -14,9 +14,13 @@ catch ME
 end
 
 % Install and load Horace
-cd('Horace')
+horace_path = getenv('HORACE_PATH');
+if isempty(horace_path) % try default path
+    horace_path = fullfile(fileparts(mfilename('fullpath')),'horace_git');
+end
+
+cd(fullfile(horace_path,'admin'))
 horace_install
-cd('..')
 horace_on
 
 % Install Horace-Euphonic-Interface

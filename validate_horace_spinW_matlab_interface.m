@@ -21,7 +21,10 @@ if isempty(which('horace_on'))
         end
     end
     current_path = pwd;
-    spinw_path = fullfile(fileparts(horace_path),'spinw');
+    spinw_path = fullfile(fileparts(horace_path),'spinw_git');
+    if ~isfolder(spinw_path)
+        fprintf(2,'Can not find spinW at path: %s\n',spinw_path);
+    end
     admin_path = fullfile(horace_path,'admin');
     cd(admin_path);
     horace_install('spinW_folder',spinw_path);
