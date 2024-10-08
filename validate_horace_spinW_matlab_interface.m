@@ -7,6 +7,7 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 % Exits with non-zero error code if any tests failed
 %
 if isempty(which('horace_on'))
+    fprintf("**********   Installing Horace")    
     % install Horace first
     horace_path = getenv('HORACE_PATH');
     if isempty(horace_path)
@@ -30,12 +31,14 @@ if isempty(which('horace_on'))
     horace_install('spinW_folder',spinw_path);
     cd(current_path);
 else
-    fprintf("**********   Horace installed")
+    fprintf("**********   Horace already installed")
 end
 
 if isempty(which('horace_init'))
     % enable Horace if not already enabled
     horace_on();
+else
+    fprintf("**********   Horace already initialized")    
 end
 
 % Parse arguments

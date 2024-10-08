@@ -25,7 +25,7 @@ end
 cd(fullfile(horace_path,'admin'))
 horace_install
 horace_on
-cd rootpath;
+cd(rootpath);
 
 
 % Install Horace-Euphonic-Interface
