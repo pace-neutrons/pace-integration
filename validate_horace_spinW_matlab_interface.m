@@ -9,7 +9,16 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 if isempty(which('horace_on'))
     horace_path = getenv('HORACE_PATH');
     if isempty(horace_path)
-        error('HORACE:validate_horace:runtime_error', 'Horace is not installed and the path to Horace is unknown')
+        % are we already in the folder requested?
+        this_path = fullfile(fileparts(mfilename("fullpath")));
+        if isfolder(fullfile(this_path,'admin'))
+            horace_path = this_path;
+        else
+            error('HORACE:validate_horace:runtime_error', ...
+                'Horace is not installed and the path %s does not refer to Horace', ...
+                this_path)
+        end
+
     end
     current_path = pwd;
     spinw_path = fullfile(fileparts(horace_path),'spinw');

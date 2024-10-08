@@ -67,7 +67,7 @@ classdef test_model_evaluation < TestCase
             Eidx = find(Ev>=Ecut(1) & Ev<=Ecut(2));
             cut1 = squeeze(sum(spec3D(Eidx,:,:),1))/numel(Eidx)/(Ev(2)-Ev(1));
             if obj.visual_inspection
-                figure;                
+                figure;
                 imagesc(Qhv,Qkv,cut1);
                 set(gca,'YDir','normal')
                 xlabel('(H 0 0) (r.l.u.)')
@@ -91,11 +91,11 @@ classdef test_model_evaluation < TestCase
                 clim([0 3])
                 colorbar
             end
-            % TODO: 
-            % very bad and should be investigated from scientific point of
-            % view. Visually it is the same images, but in fact they are
-            % different and difference is substantial. Like Horace and
-            % spinW are calucluated on slightly different grid
+            % TODO:
+            % Resolution function in sw_instrument and resolution function
+            % in sw.horace disp2sqw_eval are calculated differently,
+            % so images look similar but actually different. This should
+            % eventually be fixed.
             assertElementsAlmostEqual(w2.s,cut1,'absolute',0.6);
         end
     end
