@@ -5,26 +5,18 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 %
 %
 % Exits with non-zero error code if any tests failed
-this_dir = fileparts(mfilename('fullpath'));
-if isempty(which('herbert_init.m'))
-    parent_dir = split(this_dir, filesep);
-    parent_dir = join(parent_dir(1:end-1), filesep);
-    parent_dir = parent_dir{1};
-    cd(fullfile(parent_dir, 'Horace'));
-    cleanup = onCleanup(@()cd(parent_dir))
-    horace_install;
-    horace_on;
-    addpath(genpath(fullfile(parent_dir, 'spinw')));
-    clear('cleanup');
-end
-
-
+%
 if isempty(which('horace_on'))
     horace_path = getenv('HORACE_PATH');
     if isempty(horace_path)
         error('HORACE:validate_horace:runtime_error', 'Horace is not installed and the path to Horace is unknown')
     end
-
+    current_path = pwd;
+    spinw_path = fullfile(fileparts(horace_path),'spinw');
+    admin_path = fullfile(horace_path,'admin');
+    cd(admin_path);
+    horace_install('spinW_folder',spinw_path);
+    cd(current_path);
 end
 
 if isempty(which('horace_init'))
@@ -83,6 +75,7 @@ cleanup_obj = onCleanup(@() ...
     test_folders, ...
     initial_warn_state));
 
+hor.init_tests = true;
 % Run unit tests
 % --------------
 argi = {};

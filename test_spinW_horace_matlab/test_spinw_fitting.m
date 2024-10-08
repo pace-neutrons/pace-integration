@@ -59,7 +59,7 @@ classdef test_spinw_fitting < TestCase
             t_spinw_fit = toc();
             fprintf('Time to run fit: %s s\n', t_spinw_fit);
 
-            assertElemenstEqualToTol(fitpars.p,[15.2440 0 65.9076 10 135.4074],'tol',[1.e-3,1.e-3]);
+            assertEqualToTol(fitpars.p,[15.2440 0 65.9076 10 135.4074],'tol',[1.e-3,1.e-3]);
         end
     end
 end

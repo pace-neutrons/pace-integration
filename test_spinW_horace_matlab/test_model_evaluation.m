@@ -11,8 +11,8 @@ classdef test_model_evaluation < TestCase
                 name = varargin{1};
             end
             obj = obj@TestCase(name);
-
-            obj.visual_inspection = true;
+            % enable visual inspection when investigating models manually
+            %obj.visual_inspection = true;
         end
         %
         function test_evaluate_model(obj)
