@@ -5,6 +5,20 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 %
 %
 % Exits with non-zero error code if any tests failed
+this_dir = fileparts(mfilename('fullpath'));
+if isempty(which('herbert_init.m'))
+    parent_dir = split(this_dir, filesep);
+    parent_dir = join(parent_dir(1:end-1), filesep);
+    parent_dir = parent_dir{1};
+    cd(fullfile(parent_dir, 'Horace'));
+    cleanup = onCleanup(@()cd(parent_dir))
+    horace_install;
+    horace_on;
+    addpath(genpath(fullfile(parent_dir, 'spinw')));
+    clear('cleanup');
+end
+
+
 if isempty(which('horace_on'))
     horace_path = getenv('HORACE_PATH');
     if isempty(horace_path)
