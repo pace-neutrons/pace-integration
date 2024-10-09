@@ -6,9 +6,11 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 %
 % Exits with non-zero error code if any tests failed
 % TODO: Currently throws HORACE:spinw_validation:runtime_error if any test fails
-%       This should be fixed by modif
+%       This should be fixed by modifying github actions workflow to
+%       correctly process return codes
 %
 horace_path = getenv('HORACE_PATH');
+% expect spinW is located alongside Horace in the same folder.
 install_horace_and_spinw(horace_path);
 
 if isempty(which('horace_init'))

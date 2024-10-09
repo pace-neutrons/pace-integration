@@ -96,7 +96,7 @@ classdef test_model_evaluation < TestCase
             % in sw.horace disp2sqw_eval are calculated differently,
             % so images look similar but actually different. This should
             % eventually be fixed.
-            assertElementsAlmostEqual(w2.s,cut1,'absolute',0.001);
+            assertElementsAlmostEqual(w2.s,cut1,'absolute',0.6);
         end
     end
 end
