@@ -200,6 +200,7 @@ if isempty(which('horace_on'))
 
     cd(admin_path);
     %horace_install('spinW_folder',spinw_path);
+    horace_install();
     cd(current_path);
 else
     fprintf("**********   Horace already installed\n")
