@@ -5,43 +5,17 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 %
 %
 % Exits with non-zero error code if any tests failed
+% TODO: Currently throws HORACE:spinw_validation:runtime_error if any test fails
+%       This should be fixed by modif
 %
-if isempty(which('horace_on'))
-    fprintf("**********   Installing Horace\n")    
-    % install Horace first
-    horace_path = getenv('HORACE_PATH');
-    if isempty(horace_path)
-        % are we already in the folder requested?
-        this_path = fullfile(fileparts(mfilename("fullpath")));
-        if isfolder(fullfile(this_path,'admin'))
-            horace_path = this_path;
-        else
-            error('HORACE:validate_horace:runtime_error', ...
-                'Horace is not installed and the path %s does not refer to Horace', ...
-                this_path)
-        end
-    end
-    current_path = pwd;
-    spinw_path = fullfile(fileparts(horace_path),'spinw_git');
-    if ~isfolder(spinw_path)
-        fprintf(2,'Can not find spinW at path: %s\n',spinw_path);
-    else 
-        cd(spinw_path)
-        install_spinw('silent',true);
-    end
-    admin_path = fullfile(horace_path,'admin');
-    cd(admin_path);
-    horace_install('spinW_folder',spinw_path);
-    cd(current_path);
-else
-    fprintf("**********   Horace already installed\n")
-end
+horace_path = getenv('HORACE_PATH');
+install_horace_and_spinw(horace_path);
 
 if isempty(which('horace_init'))
     % enable Horace if not already enabled
     horace_on();
 else
-    fprintf("**********   Horace already initialized")    
+    fprintf("**********   Horace already initialized\n")
 end
 
 % Parse arguments
@@ -120,8 +94,9 @@ clear config_store;
 err = ~all(test_ok);
 % This is not a good practice but what is currently supported by github
 % actions
-% TODO: 
-% make it more aligned with standard unit test practice
+% TODO:
+% make it more aligned with standard unit test practice. Change will
+% probably affect this and gihub actions workflow.
 if err
     n_failed = sum(~test_ok);
     error('HORACE:spinw_validation:runtime_error', ...
@@ -180,4 +155,53 @@ for i = 1:numel(test_folders)
 end
 
 warning(initial_warn_state);
+end
+
+function install_horace_and_spinw(horace_path)
+% Given horace_path, install horace and spinw if Horace has not been
+% installed.
+% If Horace was installed, we expect horace_on script initialize spinw.
+%
+% spinw expected to be located alongside Horace
+%
+% store reference point to avoid function's side-effects
+current_path = pwd;
+
+if isempty(which('horace_on'))
+    fprintf("**********   Installing Horace\n")
+    % install Horace first
+
+    if isempty(horace_path)
+        % are we already in the folder requested?
+        this_path = fullfile(fileparts(mfilename("fullpath")));
+        if isfolder(fullfile(this_path,'admin'))
+            horace_path = this_path;
+        else
+            error('HORACE:validate_horace:runtime_error', ...
+                'Horace is not installed and the path %s does not refer to Horace', ...
+                this_path)
+        end
+    end
+    spinw_path = fullfile(fileparts(horace_path),'spinw_git');
+
+    if ~isfolder(spinw_path)
+        error('HORACE:validate_horace:runtime_error', ...
+            'Can not find spinW at path: %s',spinw_path);
+    else
+        cd(spinw_path)
+        install_spinw('silent',true);
+    end
+    if isfile(fullfile(horace_path,'horace_install.m'))
+        admin_path  = horace_path;
+    else
+        admin_path = fullfile(horace_path,'admin');  % do not check further
+        % it will fail on the next step anyway, if not found
+    end
+
+    cd(admin_path);
+    %horace_install('spinW_folder',spinw_path);
+    cd(current_path);
+else
+    fprintf("**********   Horace already installed\n")
+end
 end
