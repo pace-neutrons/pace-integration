@@ -59,9 +59,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install psutil numpy brille requests wheel
-          git clone --depth 1 https://github.com/spinw/spinw
-          wget https://gist.github.com/mducle/9186d062b42f05507d831af3d6677a5d/raw/cd0b0d3ed059f4e13d0364e98312dcddc2690ced/run_gh_matlab.sh
-          chmod 755 run_gh_matlab.sh
+          git clone --depth 1 https://github.com/spinw/spinw spinw_git
+          chmod 755 ./tools/run_gh_matlab.sh
       - name: Build euphonic
         run: |
           git clone --depth 1 https://github.com/pace-neutrons/euphonic euphonic.git
@@ -74,32 +73,31 @@ jobs:
           git submodule update --init light_python_wrapper
           python create_mltbx.py
           cd mltbx
-          ../../run_gh_matlab.sh create_mltbx
+          echo "EUPHONIC_TOOLBOX=$(pwd)" >> $GITHUB_ENV
+          ../../tools/run_gh_matlab.sh create_mltbx
           cp horace_euphonic_interface.mltbx ../../
       - name: Build Horace-master
         run: |
           if [[ "${{ inputs.jenkins_id }}" == "" ]]
           then
-            git clone --depth 1 https://github.com/pace-neutrons/horace horace.git
-            cd horace.git
+            git clone --depth 1 https://github.com/pace-neutrons/horace horace_git
+            cd horace_git
           else
             # Using sparse checkout for a specific SHA
-            mkdir horace.git
-            cd horace.git
+            mkdir horace_git
+            cd horace_git
             git init
             git remote add origin https://github.com/pace-neutrons/horace
             git fetch origin ${{ inputs.jenkins_id }}
             git checkout FETCH_HEAD
           fi
-          ./tools/build_config/build.sh -p
-          mkdir -p build/Horace
-          cd build/Horace
-          find .. -maxdepth 1 -name "Horace*tar.gz" -exec tar zxf '{}' --strip-components=1 \;
-          cd ../../../
-          mv horace.git/build/Horace .
+          echo "HORACE_PATH=$(pwd)" >> $GITHUB_ENV
+          ./tools/build_config/build.sh -b
+          cd ./../
       - name: Run spinw test
         run: |
-          ./run_gh_matlab.sh "run('iron_spinwaves/run_spinw_horace_test.m')"
+          export HORACE_PATH=${{ env.HORACE_PATH }}
+          ./tools/run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
       # Brille not integrated into SpinW properly yet - skip the test for now
       #- name: Run brille test
       #  run: |
@@ -109,7 +107,10 @@ jobs:
       - name: Run euphonic test
         run: |
           export PYTHON_EX_PATH=`which python`
-          ./run_gh_matlab.sh setup_and_run_tests
+          export HORACE_PATH=${{ env.HORACE_PATH }}
+          export EUPHONIC_TOOLBOX=${{ env.EUPHONIC_TOOLBOX}}
+          
+          ./tools/run_gh_matlab.sh setup_and_run_euphonic_tests
       #- name: Setup tmate
       #  if: ${{ failure() }}
       #  uses: mxschmitt/action-tmate@v3

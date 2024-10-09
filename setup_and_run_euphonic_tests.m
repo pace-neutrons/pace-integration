@@ -14,10 +14,19 @@ catch ME
 end
 
 % Install and load Horace
-cd('Horace')
+horace_path = getenv('HORACE_PATH');
+if isempty(horace_path) % try default path
+    rootpath = fileparts(mfilename('fullpath'));
+    horace_path = fullfile(rootpath,'horace_git');
+else
+    rootpath = fileparts(horace_path );
+end
+
+cd(fullfile(horace_path,'admin'))
 horace_install
-cd('..')
 horace_on
+cd(rootpath);
+
 
 % Install Horace-Euphonic-Interface
 toolboxes = matlab.addons.toolbox.installedToolboxes;
@@ -27,7 +36,9 @@ for i = 1:length(toolboxes)
         break;
     end
 end
-matlab.addons.toolbox.installToolbox(['horace_euphonic_interface.mltbx']);
+euphonic_toolbox_path = getenv('EUPHONIC_TOOLBOX');
+toolbox = fullfile(euphonic_toolbox_path,'horace_euphonic_interface.mltbx');
+matlab.addons.toolbox.installToolbox(toolbox);
 matlab.addons.toolbox.installedToolboxes
 
 % Run tests
