@@ -26,6 +26,7 @@ if isempty(which('horace_on'))
     if ~isfolder(spinw_path)
         fprintf(2,'Can not find spinW at path: %s\n',spinw_path);
     else 
+        cd(spinw_path)
         install_spinw('silent',true);
         spinw_init;
     end
