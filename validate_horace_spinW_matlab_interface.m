@@ -9,7 +9,7 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 %       This should be fixed by modifying github actions workflow to
 %       correctly process return codes
 % NOTE:
-% This scipt is extract from validate_horace script. 
+% This scipt is extract from validate_horace script.
 %
 horace_path = getenv('HORACE_PATH');
 % expect spinW is located alongside Horace in the same folder.
@@ -108,7 +108,7 @@ if err
 end
 
 end
-%-------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 function install_horace_and_spinw(horace_path)
 % Given horace_path, install horace and spinw if Horace has not been
@@ -121,7 +121,7 @@ function install_horace_and_spinw(horace_path)
 current_path = pwd;
 
 if isempty(which('horace_on'))
-    fprintf("**********   Installing Horace\n")
+    fprintf("**********   Installing Horace with spinw\n")
     % install Horace first
 
     if isempty(horace_path)
@@ -152,10 +152,11 @@ if isempty(which('horace_on'))
     end
 
     cd(admin_path);
-    %horace_install('spinW_folder',spinw_path);
-    horace_install();
+    horace_install('spinW_folder',spinw_path);
+    %horace_install();
     cd(current_path);
+    fprintf("**********   completed Horace&SpinW installation\n")
 else
-    fprintf("**********   Horace already installed\n")
+    fprintf("**********   Horace already installed. SpinW should be initialized by horace_on\n")
 end
 end
