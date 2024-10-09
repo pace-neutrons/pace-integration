@@ -60,8 +60,7 @@ jobs:
         run: |
           python -m pip install psutil numpy brille requests wheel
           git clone --depth 1 https://github.com/spinw/spinw spinw_git
-          wget https://gist.github.com/mducle/9186d062b42f05507d831af3d6677a5d/raw/cd0b0d3ed059f4e13d0364e98312dcddc2690ced/run_gh_matlab.sh
-          chmod 755 run_gh_matlab.sh
+          chmod 755 ./tools/run_gh_matlab.sh
       - name: Build euphonic
         run: |
           git clone --depth 1 https://github.com/pace-neutrons/euphonic euphonic.git
@@ -75,7 +74,7 @@ jobs:
           python create_mltbx.py
           cd mltbx
           echo "EUPHONIC_TOOLBOX=$(pwd)" >> $GITHUB_ENV
-          ../../run_gh_matlab.sh create_mltbx
+          ../../tools/run_gh_matlab.sh create_mltbx
           cp horace_euphonic_interface.mltbx ../../
       - name: Build Horace-master
         run: |
@@ -98,7 +97,7 @@ jobs:
       - name: Run spinw test
         run: |
           export HORACE_PATH=${{ env.HORACE_PATH }}
-          ./run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
+          ./tools/run_gh_matlab.sh "run('validate_horace_spinW_matlab_interface')"
       # Brille not integrated into SpinW properly yet - skip the test for now
       #- name: Run brille test
       #  run: |
@@ -111,7 +110,7 @@ jobs:
           export HORACE_PATH=${{ env.HORACE_PATH }}
           export EUPHONIC_TOOLBOX=${{ env.EUPHONIC_TOOLBOX}}
           
-          ./run_gh_matlab.sh setup_and_run_euphonic_tests
+          ./tools/run_gh_matlab.sh setup_and_run_euphonic_tests
       #- name: Setup tmate
       #  if: ${{ failure() }}
       #  uses: mxschmitt/action-tmate@v3
