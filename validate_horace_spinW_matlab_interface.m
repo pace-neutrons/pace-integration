@@ -7,7 +7,7 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 % Exits with non-zero error code if any tests failed
 %
 if isempty(which('horace_on'))
-    fprintf("**********   Installing Horace")    
+    fprintf("**********   Installing Horace\n")    
     % install Horace first
     horace_path = getenv('HORACE_PATH');
     if isempty(horace_path)
@@ -25,13 +25,15 @@ if isempty(which('horace_on'))
     spinw_path = fullfile(fileparts(horace_path),'spinw_git');
     if ~isfolder(spinw_path)
         fprintf(2,'Can not find spinW at path: %s\n',spinw_path);
+    else 
+        spinw_init;
     end
     admin_path = fullfile(horace_path,'admin');
     cd(admin_path);
     horace_install('spinW_folder',spinw_path);
     cd(current_path);
 else
-    fprintf("**********   Horace already installed")
+    fprintf("**********   Horace already installed\n")
 end
 
 if isempty(which('horace_init'))
@@ -115,9 +117,14 @@ close all
 clear config_store;
 
 err = ~all(test_ok);
-
-if exit_on_completion
-    exit(err);
+% This is not a good practice but what is currently supported by github
+% actions
+% TODO: 
+% make it more aligned with standard unit test practice
+if err
+    n_failed = sum(~test_ok);
+    error('HORACE:spinw_validation:runtime_error', ...
+        '%d out of %d unit tests have failed',n_failed,numel(test_ok));
 end
 
 end
