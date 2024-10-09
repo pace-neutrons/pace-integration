@@ -10,7 +10,7 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 %       correctly process return codes
 % NOTE:
 % This scipt is extract from validate_horace script.
-%
+%%
 horace_path = getenv('HORACE_PATH');
 % expect spinW is located alongside Horace in the same folder.
 install_horace_and_spinw(horace_path);
@@ -108,8 +108,8 @@ if err
 end
 
 end
-%--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
+
+
 function install_horace_and_spinw(horace_path)
 % Given horace_path, install horace and spinw if Horace has not been
 % installed.
