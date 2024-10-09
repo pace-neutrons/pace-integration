@@ -28,7 +28,6 @@ if isempty(which('horace_on'))
     else 
         cd(spinw_path)
         install_spinw('silent',true);
-        spinw_init;
     end
     admin_path = fullfile(horace_path,'admin');
     cd(admin_path);
