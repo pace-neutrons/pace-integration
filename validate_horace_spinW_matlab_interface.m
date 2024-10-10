@@ -8,7 +8,9 @@ function err = validate_horace_spinW_matlab_interface(varargin)
 % TODO: Currently throws HORACE:spinw_validation:runtime_error if any test fails
 %       This should be fixed by modifying github actions workflow to
 %       correctly process return codes
-%
+% NOTE:
+% This scipt is extract from validate_horace script.
+%%
 horace_path = getenv('HORACE_PATH');
 % expect spinW is located alongside Horace in the same folder.
 install_horace_and_spinw(horace_path);
@@ -106,58 +108,7 @@ if err
 end
 
 end
-%-------------------------------------------------------------------------------
-function test_stage_reset(icount, hor, hpc, par, nomex, forcemex, talkative)
-% Run before each stage
-% Set Horace configurations to the defaults (but don't save)
-% (The validation should be done starting with the defaults, otherwise an error
-%  may be due to a poor choice by the user of configuration parameters)
 
-% Set the default configurations, printing warning only the first time round to
-% avoid copious warning messages
-warn_state = warning();
-cleanup_obj = onCleanup(@()warning(warn_state));
-if icount>1
-    warning('off',  'all');
-end
-
-set(hor, 'defaults');
-set(hpc, 'defaults');
-% set(par, 'defaults');
-
-% Return warning state to incoming state
-warning(warn_state)
-
-% Special unit tests settings.
-hor.init_tests = true; % initialise unit tests
-hor.use_mex = ~nomex;
-hor.force_mex_if_use_mex = forcemex;
-
-if talkative
-    hor.log_level = 1; % force log level high.
-else
-    hor.log_level = -1; % turn off informational output
-end
-
-end
-%--------------------------------------------------------------------------
-function validate_horace_cleanup(cur_horace_config, cur_hpc_config, ...
-    cur_par_config, test_folders, initial_warn_state)
-% Reset the configurations, and remove unit test folders from the path
-
-set(hor_config, cur_horace_config);
-set(hpc_config, cur_hpc_config);
-set(parallel_config, cur_par_config);
-
-warning('off',  'all'); % avoid warning on deleting non-existent path
-
-% Clear up the test folders, previously placed on the path
-for i = 1:numel(test_folders)
-    rmpath(test_folders{i});
-end
-
-warning(initial_warn_state);
-end
 
 function install_horace_and_spinw(horace_path)
 % Given horace_path, install horace and spinw if Horace has not been
@@ -170,7 +121,7 @@ function install_horace_and_spinw(horace_path)
 current_path = pwd;
 
 if isempty(which('horace_on'))
-    fprintf("**********   Installing Horace\n")
+    fprintf("**********   Installing Horace with spinw\n")
     % install Horace first
 
     if isempty(horace_path)
@@ -201,10 +152,11 @@ if isempty(which('horace_on'))
     end
 
     cd(admin_path);
-    %horace_install('spinW_folder',spinw_path);
-    horace_install();
+    horace_install('spinW_folder',spinw_path);
+    %horace_install();
     cd(current_path);
+    fprintf("**********   completed Horace&SpinW installation\n")
 else
-    fprintf("**********   Horace already installed\n")
+    fprintf("**********   Horace already installed. SpinW should be initialized by horace_on\n")
 end
 end
