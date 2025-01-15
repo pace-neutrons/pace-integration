@@ -115,13 +115,23 @@ jobs:
       #  if: ${{ failure() }}
       #  uses: mxschmitt/action-tmate@v3
       #  if: always()
+      - name: Notify Jenkins failure
+        if: ${{ failure() && inputs.jenkins_id != "" }}
+        run: |
+          export turl="https://github.com/pace-neutrons/pace-integration/actions/runs/${{ github.run_id }}"
+          curl -L -X POST \
+               -H "Authorization: Bearer ${{ secrets.JENKINS_GH_TOKEN }}" \
+               -H "Accept: application/vnd.github+json" \
+               -H "X-GitHub-Api-Version: 2022-11-28" \
+               -d '{"state": "failure", "description": "Integration test failed", "target_url": "${{ env.turl }}", "context": "PACE_integration"}' \
+               ${{ inputs.jenkins_url }}
 
   notify_success:
     if: ${{ inputs.jenkins_url != '' && inputs.jenkins_id != '' }}
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Jenkins pending
+      - name: Notify Jenkins success
         run: |
           export turl="https://github.com/pace-neutrons/pace-integration/actions/runs/${{ github.run_id }}"
           curl -L -X POST \
@@ -130,3 +140,4 @@ jobs:
                -H "X-GitHub-Api-Version: 2022-11-28" \
                -d '{"state": "success", "description": "Integration test passed", "target_url": "${{ env.turl }}", "context": "PACE_integration"}' \
                ${{ inputs.jenkins_url }}
+
