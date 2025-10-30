@@ -85,7 +85,7 @@ end
 test_ok = false(1, numel(test_folders_full));
 time = bigtic();
 for i = 1:numel(test_folders_full)
-    test_stage_reset(i, hor, hpc, par, nomex, forcemex, talkative);
+    validate_horace_test_stage_reset(i, hor, hpc, par, nomex, forcemex, talkative);
     test_ok(i) = runtests(test_folders_full{i}, argi{:});
 end
 
