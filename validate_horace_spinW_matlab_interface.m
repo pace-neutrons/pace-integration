@@ -85,7 +85,12 @@ end
 test_ok = false(1, numel(test_folders_full));
 time = bigtic();
 for i = 1:numel(test_folders_full)
-    validate_horace_test_stage_reset(i, hor, hpc, par, nomex, forcemex, talkative);
+    % Horace PR 1903 changed the name of this function, but also need to handle old code 
+    try
+        test_stage_reset(i, hor, hpc, par, nomex, forcemex, talkative);
+    catch
+        validate_horace_test_stage_reset(i, hor, hpc, par, nomex, forcemex, talkative);
+    end
     test_ok(i) = runtests(test_folders_full{i}, argi{:});
 end
 
