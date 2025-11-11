@@ -15,11 +15,9 @@ end
 
 % Install and load Horace
 horace_path = getenv('HORACE_PATH');
+rootpath = fileparts(mfilename('fullpath'));
 if isempty(horace_path) % try default path
-    rootpath = fileparts(mfilename('fullpath'));
     horace_path = fullfile(rootpath,'horace_git');
-else
-    rootpath = fileparts(horace_path );
 end
 
 cd(fullfile(horace_path,'admin'))
