@@ -42,8 +42,7 @@ end
 
 % Generate full test paths to unit tests
 % --------------------------------------
-pths = horace_paths;
-test_path = pths.test;
+test_path = fileparts(mfilename('fullpath'));
 test_folders_full = fullfile(test_path, test_folders);
 
 hor = hor_config();
