@@ -13,6 +13,8 @@ catch ME
   end
 end
 
+runtests = str2func('runtests'); % Need to use base Matlab runtests
+
 % Install and load Horace
 horace_path = getenv('HORACE_PATH');
 if isempty(horace_path) % try default path
@@ -26,7 +28,6 @@ cd(fullfile(horace_path,'admin'))
 horace_install
 horace_on
 cd(rootpath);
-
 
 % Install Horace-Euphonic-Interface
 toolboxes = matlab.addons.toolbox.installedToolboxes;
